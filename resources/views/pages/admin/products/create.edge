@@ -1,0 +1,184 @@
+@layout('layouts/main')
+
+@set('title', 'Create Product')
+
+@section('content')
+<div class="d-flex">
+  @include('partials/sidebar')
+
+  <div class="flex-fill p-4">
+    <h1 class="mb-4">Create New Product</h1>
+
+    <div class="card">
+      <div class="card-body">
+        <form action="{{ route('admin.products.store') }}" method="POST" id="productForm">
+          <div class="row">
+            <div class="col-md-6">
+              <div class="mb-3">
+                <label for="name" class="form-label">Product Name *</label>
+                <input type="text" class="form-control" id="name" name="name" required>
+              </div>
+            </div>
+
+            <div class="col-md-6">
+              <div class="mb-3">
+                <label for="brand" class="form-label">Brand *</label>
+                <input type="text" class="form-control" id="brand" name="brand" required>
+              </div>
+            </div>
+
+            <div class="col-md-6">
+              <div class="mb-3">
+                <label for="category" class="form-label">Category *</label>
+                <select class="form-select" id="category" name="category" required>
+                  <option value="Gaming">Gaming</option>
+                  <option value="Business">Business</option>
+                  <option value="Ultrabook">Ultrabook</option>
+                  <option value="Workstation">Workstation</option>
+                  <option value="Budget">Budget</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="col-md-6">
+              <div class="mb-3">
+                <label for="basePrice" class="form-label">Base Price *</label>
+                <input type="number" class="form-control" id="basePrice" name="basePrice" min="0" step="0.01" required>
+              </div>
+            </div>
+
+            <div class="col-12">
+              <div class="mb-3">
+                <label for="description" class="form-label">Description *</label>
+                <textarea class="form-control" id="description" name="description" rows="4" required></textarea>
+              </div>
+            </div>
+
+            <div class="col-12">
+              <div class="mb-3">
+                <label for="images" class="form-label">Images (comma-separated URLs)</label>
+                <input type="text" class="form-control" id="images" name="images" placeholder="https://example.com/img1.jpg, https://example.com/img2.jpg">
+              </div>
+            </div>
+          </div>
+
+          <!-- Product Variants -->
+          <hr>
+          <h4>Product Variants</h4>
+          <div id="variantsContainer">
+            <div class="variant-item card mb-3">
+              <div class="card-body">
+                <div class="row">
+                  <div class="col-md-4">
+                    <label class="form-label">Variant Name *</label>
+                    <input type="text" class="form-control variant-name" placeholder="e.g., Core i5 - 8GB - 256GB SSD" required>
+                  </div>
+                  <div class="col-md-2">
+                    <label class="form-label">SKU *</label>
+                    <input type="text" class="form-control variant-sku" required>
+                  </div>
+                  <div class="col-md-2">
+                    <label class="form-label">Price *</label>
+                    <input type="number" class="form-control variant-price" min="0" step="0.01" required>
+                  </div>
+                  <div class="col-md-2">
+                    <label class="form-label">Stock *</label>
+                    <input type="number" class="form-control variant-stock" min="0" value="0" required>
+                  </div>
+                  <div class="col-md-2">
+                    <label class="form-label">Available</label>
+                    <select class="form-select variant-available">
+                      <option value="true">Yes</option>
+                      <option value="false">No</option>
+                    </select>
+                  </div>
+                </div>
+                <div class="row mt-2">
+                  <div class="col-12">
+                    <label class="form-label">Specifications (JSON format)</label>
+                    <textarea class="form-control variant-specs" rows="2" placeholder='{"cpu": "Intel Core i5", "ram": "8GB", "storage": "256GB SSD"}'></textarea>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <button type="button" class="btn btn-secondary mb-3" onclick="addVariant()">
+            <i class="bi bi-plus"></i> Add Another Variant
+          </button>
+
+          <hr>
+
+          <div class="d-flex justify-content-between">
+            <a href="{{ route('admin.products.index') }}" class="btn btn-secondary">Cancel</a>
+            <button type="submit" class="btn btn-primary">
+              <i class="bi bi-save"></i> Save Product
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+@end
+
+@section('scripts')
+<script>
+function addVariant() {
+  const container = document.getElementById('variantsContainer');
+  const newVariant = document.querySelector('.variant-item').cloneNode(true);
+  
+  // Clear values
+  newVariant.querySelectorAll('input, textarea').forEach(input => input.value = '');
+  newVariant.querySelector('.variant-stock').value = '0';
+  newVariant.querySelector('.variant-available').value = 'true';
+  
+  // Add remove button
+  const removeBtn = document.createElement('button');
+  removeBtn.type = 'button';
+  removeBtn.className = 'btn btn-danger btn-sm mt-2';
+  removeBtn.innerHTML = '<i class="bi bi-trash"></i> Remove';
+  removeBtn.onclick = function() { newVariant.remove(); };
+  newVariant.querySelector('.card-body').appendChild(removeBtn);
+  
+  container.appendChild(newVariant);
+}
+
+document.getElementById('productForm').addEventListener('submit', function(e) {
+  e.preventDefault();
+  
+  const variants = [];
+  document.querySelectorAll('.variant-item').forEach(item => {
+    const specsText = item.querySelector('.variant-specs').value;
+    let specs = {};
+    
+    if (specsText) {
+      try {
+        specs = JSON.parse(specsText);
+      } catch (err) {
+        alert('Invalid JSON in specifications');
+        return;
+      }
+    }
+    
+    variants.push({
+      variantName: item.querySelector('.variant-name').value,
+      sku: item.querySelector('.variant-sku').value,
+      price: parseFloat(item.querySelector('.variant-price').value),
+      stock: parseInt(item.querySelector('.variant-stock').value),
+      isAvailable: item.querySelector('.variant-available').value === 'true',
+      specifications: specs
+    });
+  });
+  
+  // Create hidden input with variants JSON
+  const variantsInput = document.createElement('input');
+  variantsInput.type = 'hidden';
+  variantsInput.name = 'variants';
+  variantsInput.value = JSON.stringify(variants);
+  this.appendChild(variantsInput);
+  
+  this.submit();
+});
+</script>
+@end
