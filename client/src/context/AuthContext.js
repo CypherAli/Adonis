@@ -74,27 +74,28 @@ export const AuthProvider = ({ children }) => {
             // Show warning if partner not approved
             if (res.data.warning) {
                 console.warn('⚠️', res.data.warning);
-                // You can also use a toast notification here if available
             }
             
-            setToken(res.data.token);
+            // Save token and user data
+            const { token, user: userData } = res.data;
             
-            // Set user from decoded token
-            if (res.data.token) {
-                const decodedUser = jwtDecode(res.data.token);
-                setUser(decodedUser);
+            // Store in localStorage first
+            localStorage.setItem('token', token);
+            if (userData) {
+                localStorage.setItem('userDetails', JSON.stringify(userData));
             }
             
-            // Save user details to state and localStorage
-            if (res.data.user) {
-                setUserDetails(res.data.user);
-                localStorage.setItem('userDetails', JSON.stringify(res.data.user));
-                console.log('✅ User details saved:', res.data.user);
-            }
+            // Decode and set user state
+            const decodedUser = jwtDecode(token);
+            setUser(decodedUser);
+            setUserDetails(userData);
+            setToken(token); // This triggers useEffect but user is already set
             
-            return res.data; // Return response for component to handle
+            console.log('✅ Login successful:', decodedUser);
+            
+            return res.data;
         } catch (err) {
-            console.error('Login failed', err);
+            console.error('❌ Login failed:', err);
             throw err;
         }
     };

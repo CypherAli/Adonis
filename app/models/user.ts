@@ -37,13 +37,17 @@ export interface UserDocument extends Document {
   wishlist?: Types.ObjectId[]
   orderHistory?: Types.ObjectId[]
   recentlyViewed?: Types.ObjectId[]
-  loyaltyPoints?: number
+  loyaltyPoints?: {
+    total?: number
+    available?: number
+    used?: number
+  }
   membershipTier?: 'bronze' | 'silver' | 'gold' | 'platinum'
   preferences?: {
     notifications?: {
-      email?: boolean
+      email?: boolean | object
       sms?: boolean
-      push?: boolean
+      push?: boolean | object
     }
     newsletter?: boolean
     language?: string
@@ -190,8 +194,9 @@ const UserSchema = new Schema<UserDocument>(
       },
     ],
     loyaltyPoints: {
-      type: Number,
-      default: 0,
+      total: { type: Number, default: 0 },
+      available: { type: Number, default: 0 },
+      used: { type: Number, default: 0 },
     },
     membershipTier: {
       type: String,
@@ -199,14 +204,31 @@ const UserSchema = new Schema<UserDocument>(
       default: 'bronze',
     },
     preferences: {
+      // Notification settings
       notifications: {
-        email: { type: Boolean, default: true },
-        sms: { type: Boolean, default: false },
-        push: { type: Boolean, default: true },
+        email: {
+          orderUpdates: { type: Boolean, default: true },
+          priceAlerts: { type: Boolean, default: true },
+          promotions: { type: Boolean, default: true },
+          warrantyReminders: { type: Boolean, default: true },
+        },
+        push: {
+          orderUpdates: { type: Boolean, default: true },
+          priceAlerts: { type: Boolean, default: false },
+          promotions: { type: Boolean, default: false },
+        },
       },
-      newsletter: { type: Boolean, default: true },
-      language: { type: String, default: 'vi' },
-      currency: { type: String, default: 'VND' },
+      // Display preferences
+      language: {
+        type: String,
+        enum: ['vi', 'en'],
+        default: 'vi',
+      },
+      currency: {
+        type: String,
+        enum: ['VND', 'USD'],
+        default: 'VND',
+      },
     },
     verification: {
       email: {

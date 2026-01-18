@@ -15,6 +15,12 @@ const Header = () => {
     const [searchQuery, setSearchQuery] = useState('');
     const [isCartSidebarOpen, setIsCartSidebarOpen] = useState(false);
 
+    // Debug log
+    React.useEffect(() => {
+        console.log('Header - User state:', user);
+        console.log('Header - UserDetails:', userDetails);
+    }, [user, userDetails]);
+
     const handleLogout = () => {
         logout();
         navigate('/login');
