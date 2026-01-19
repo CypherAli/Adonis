@@ -64,7 +64,7 @@
     width: 100%;
     max-width: 100%;
     flex: 1 1 auto; /* Cho phép co giãn */
-    padding-bottom: 16px;
+    padding-bottom: 90px; /* Tạo không gian cho nút sticky */
     min-height: 0; /* Quan trọng để scroll hoạt động */
 }
 
@@ -109,67 +109,54 @@
     display: flex;
     align-items: center;
     justify-content: space-between;
-    margin-bottom: 24px;
-    padding-bottom: 20px;
-    border-bottom: 2px solid #e5e7eb;
+    margin-bottom: 16px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid #e5e7eb;
     position: relative;
 }
 
 .filter-header-new::after {
     content: '';
     position: absolute;
-    bottom: -2px;
+    bottom: -1px;
     left: 0;
     height: 2px;
-    width: 80px;
+    width: 60px;
     background: linear-gradient(90deg, #6366f1, #8b5cf6);
 }
 
 .filter-header-new h3 {
     margin: 0;
-    font-size: 16px;
+    font-size: 14px;
     color: #1f2937;
     font-weight: 700;
     display: flex;
     align-items: center;
-    gap: 10px;
-    letter-spacing: 0.5px;
-    text-transform: uppercase;
+    gap: 8px;
+    letter-spacing: 0.3px;
 }
 
 .header-icon {
-    font-size: 22px;
+    font-size: 18px;
     color: #6366f1;
-    animation: iconFloat 3s ease-in-out infinite;
-}
-
-@keyframes iconFloat {
-    0%, 100% { transform: translateY(0); }
-    50% { transform: translateY(-4px); }
 }
 
 .active-filters-badge-new {
     background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
     color: white;
-    font-size: 12px;
-    font-weight: 800;
-    padding: 6px 12px;
-    border-radius: 16px;
-    min-width: 24px;
+    font-size: 11px;
+    font-weight: 700;
+    padding: 4px 10px;
+    border-radius: 12px;
+    min-width: 20px;
     text-align: center;
-    box-shadow: 0 4px 16px rgba(99, 102, 241, 0.4);
-    animation: badgePulse 2s ease-in-out infinite;
-}
-
-@keyframes badgePulse {
-    0%, 100% { opacity: 1; transform: scale(1); }
-    50% { opacity: 0.9; transform: scale(1.08); }
+    box-shadow: 0 2px 8px rgba(99, 102, 241, 0.3);
 }
 
 /* ==================== FILTER GROUP ==================== */
 .filter-group-new {
-    margin-bottom: 20px;
-    padding-bottom: 20px;
+    margin-bottom: 12px;
+    padding-bottom: 12px;
     border-bottom: 2px dashed #e5e7eb;
 }
 
@@ -690,12 +677,10 @@
 .filter-actions-fixed {
     display: flex;
     flex-direction: column;
-    gap: 12px;
-    padding: 20px 20px 18px 20px; /* Tăng padding top */
-    padding-top: 28px; /* Thêm khoảng cách từ trên xuống */
-    margin-top: 24px; /* Thêm margin top để đẩy xuống thấp hơn */
+    gap: 8px;
+    padding: 14px 16px;
     background: linear-gradient(135deg, #ffffff 0%, #fafbfc 100%);
-    border-top: 3px solid #e5e7eb;
+    border-top: 2px solid #e5e7eb;
     position: sticky;
     bottom: 0;
     left: 0;
@@ -720,21 +705,21 @@
 
 .apply-btn-new {
     width: 100%;
-    padding: 16px 20px;
+    padding: 12px 16px;
     background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
     color: white;
     border: none;
-    border-radius: 14px;
-    font-size: 14px;
-    font-weight: 800;
+    border-radius: 12px;
+    font-size: 13px;
+    font-weight: 700;
     cursor: pointer;
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 10px;
-    box-shadow: 0 6px 20px rgba(99, 102, 241, 0.35);
-    letter-spacing: 1px;
+    gap: 8px;
+    box-shadow: 0 4px 16px rgba(99, 102, 241, 0.35);
+    letter-spacing: 0.8px;
     text-transform: uppercase;
 }
 
@@ -749,20 +734,20 @@
 
 .clear-btn-new {
     width: 100%;
-    padding: 14px 20px;
+    padding: 10px 16px;
     background: white;
     color: #6b7280;
     border: 2px solid #d1d5db;
-    border-radius: 14px;
-    font-size: 14px;
-    font-weight: 800;
+    border-radius: 12px;
+    font-size: 13px;
+    font-weight: 700;
     cursor: pointer;
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 10px;
-    letter-spacing: 1px;
+    gap: 8px;
+    letter-spacing: 0.8px;
     text-transform: uppercase;
 }
 
