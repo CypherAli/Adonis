@@ -1,96 +1,130 @@
 @layout('layouts/main')
 
-@set('title', 'Products')
+  @set('title', 'Products')
 
-@section('content')
-<div class="d-flex">
-  @include('partials/sidebar')
+    @section('content')
+      <div class="d-flex">
+        @include('partials/sidebar')
 
-  <div class="flex-fill p-4">
-    <div class="d-flex justify-content-between align-items-center mb-4">
-      <h1>Products</h1>
-      <a href="{{ route('admin.products.create') }}" class="btn btn-primary">
-        <i class="bi bi-plus"></i> Add Product
+        <div class="flex-fill p-4">
+          <div class="d-flex justify-content-between align-items-center mb-4">
+            <h1>
+              Products
+            </h1>
+            <a href="{{ route('admin.products.create') }}" class="btn btn-primary">
+              <i class="bi bi-plus"></i>Add Product
       </a>
-    </div>
-
-    <!-- Search Form -->
-    <div class="card mb-4">
-      <div class="card-body">
-        <form action="{{ route('admin.products.index') }}" method="GET">
-          <div class="input-group">
-            <input type="text" name="search" class="form-control" placeholder="Search products..." value="{{ search }}">
-            <button type="submit" class="btn btn-outline-secondary">
-              <i class="bi bi-search"></i> Search
-            </button>
           </div>
-        </form>
-      </div>
-    </div>
 
-    <!-- Products Table -->
-    <div class="card">
-      <div class="card-body">
-        <table class="table table-hover">
-          <thead>
-            <tr>
-              <th>Name</th>
-              <th>Brand</th>
-              <th>Category</th>
-              <th>Base Price</th>
-              <th>Variants</th>
-              <th>Status</th>
-              <th>Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            @each(product in products)
-            <tr>
-              <td>
-                <a href="{{ route('admin.products.show', { id: product._id }) }}">
-                  {{ product.name }}
+          <!-- Search Form -->
+          <div class="card mb-4">
+            <div class="card-body">
+              <form action="{{ route('admin.products.index') }}" method="GET">
+                <div class="input-group">
+                  <input
+                    type="text"
+                    name="search"
+                    class="form-control"
+                    placeholder="Search products..."
+                    value="{{ search }}"
+                  />
+                  <button type="submit" class="btn btn-outline-secondary">
+                    <i class="bi bi-search"></i>Search
+            </button>
+                </div>
+              </form>
+            </div>
+          </div>
+
+          <!-- Products Table -->
+          <div class="card">
+            <div class="card-body">
+              <table class="table table-hover">
+                <thead>
+                  <tr>
+                    <th>
+                      Name
+                    </th>
+                    <th>
+                      Brand
+                    </th>
+                    <th>
+                      Category
+                    </th>
+                    <th>
+                      Base Price
+                    </th>
+                    <th>
+                      Variants
+                    </th>
+                    <th>
+                      Status
+                    </th>
+                    <th>
+                      Actions
+                    </th>
+                  </tr>
+                </thead>
+                <tbody>
+                  @each(product in products)
+                    <tr>
+                      <td>
+                        <a href="{{ route('admin.products.show', { id: product._id }) }}">
+                          {{ product.name }}
                 </a>
-              </td>
-              <td>{{ product.brand }}</td>
-              <td>{{ product.category }}</td>
-              <td>${{ product.basePrice.toLocaleString() }}</td>
-              <td>{{ product.variants.length }} variants</td>
-              <td>
-                <span class="badge bg-{{ product.isActive ? 'success' : 'secondary' }}">
-                  {{ product.isActive ? 'Active' : 'Inactive' }}
+                      </td>
+                      <td>
+                        {{ product.brand }}
+                      </td>
+                      <td>
+                        {{ product.category }}
+                      </td>
+                      <td>
+                        ${{ product.basePrice.toLocaleString() }}
+                      </td>
+                      <td>
+                        {{ product.variants.length }} variants
+                      </td>
+                      <td>
+                        <span class="badge bg-{{ product.isActive ? 'success' : 'secondary' }}">
+                          {{ product.isActive ? 'Active' : 'Inactive' }}
                 </span>
-              </td>
-              <td>
-                <a href="{{ route('admin.products.edit', { id: product._id }) }}" class="btn btn-sm btn-warning">
-                  <i class="bi bi-pencil"></i>
-                </a>
-                <form action="{{ route('admin.products.destroy', { id: product._id }) }}" method="POST" class="d-inline">
-                  <button type="submit" class="btn btn-sm btn-danger" onclick="return confirm('Are you sure?')">
-                    <i class="bi bi-trash"></i>
-                  </button>
-                </form>
-              </td>
-            </tr>
-            @end
-          </tbody>
-        </table>
+                      </td>
+                      <td>
+                        <a href="{{ route('admin.products.edit', { id: product._id }) }}" class="btn btn-sm btn-warning">
+                          <i class="bi bi-pencil"></i>
+                        </a>
+                        <form
+                          action="{{ route('admin.products.destroy', { id: product._id }) }}"
+                          method="POST"
+                          class="d-inline"
+                        >
+                          <button type="submit" class="btn btn-sm btn-danger" onclick="return confirm('Are you sure?')">
+                            <i class="bi bi-trash"></i>
+                          </button>
+                        </form>
+                      </td>
+                    </tr>
+                  @end
+                </tbody>
+              </table>
 
-        <!-- Pagination -->
-        @if(pagination.totalPages > 1)
-        <nav>
-          <ul class="pagination justify-content-center">
-            @each(i in Array.from({length: pagination.totalPages}, (_, i) => i + 1))
-            <li class="page-item {{ pagination.page === i ? 'active' : '' }}">
-              <a class="page-link" href="{{ route('admin.products.index', { page: i, search: search }) }}">
-                {{ i }}
+              <!-- Pagination -->
+              @if(pagination.totalPages > 1)
+                <nav>
+                  <ul class="pagination justify-content-center">
+                    @each(i in Array.from({length: pagination.totalPages}, (_, i) => i + 1))
+                      <li class="page-item {{ pagination.page === i ? 'active' : '' }}">
+                        <a class="page-link" href="{{ route('admin.products.index', { page: i, search: search }) }}">
+                          {{ i }}
               </a>
-            </li>
-            @end
-          </ul>
-        </nav>
-        @end
+                      </li>
+                    @end
+                  </ul>
+                </nav>
+              @end
+            </div>
+          </div>
+        </div>
       </div>
-    </div>
-  </div>
-</div>
-@end
+    @end

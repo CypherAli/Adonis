@@ -21,7 +21,8 @@ export default class extends BaseSeeder {
     const shoeProducts = [
       {
         name: 'Nike Air Max 270',
-        description: 'Giày thể thao Nike Air Max 270 với công nghệ đệm khí Max Air mang lại sự thoải mái tối đa. Thiết kế hiện đại, phù hợp cho cả chạy bộ và dạo phố.',
+        description:
+          'Giày thể thao Nike Air Max 270 với công nghệ đệm khí Max Air mang lại sự thoải mái tối đa. Thiết kế hiện đại, phù hợp cho cả chạy bộ và dạo phố.',
         brand: 'Nike',
         category: 'Running',
         basePrice: 3500000,
@@ -88,7 +89,8 @@ export default class extends BaseSeeder {
       },
       {
         name: 'Adidas Ultraboost 22',
-        description: 'Giày chạy bộ cao cấp Adidas Ultraboost 22 với công nghệ đệm Boost mang lại năng lượng phản hồi tuyệt vời. Thích hợp cho runner chuyên nghiệp.',
+        description:
+          'Giày chạy bộ cao cấp Adidas Ultraboost 22 với công nghệ đệm Boost mang lại năng lượng phản hồi tuyệt vời. Thích hợp cho runner chuyên nghiệp.',
         brand: 'Adidas',
         category: 'Running',
         basePrice: 4500000,
@@ -155,7 +157,8 @@ export default class extends BaseSeeder {
       },
       {
         name: 'Converse Chuck Taylor All Star',
-        description: 'Giày sneaker kinh điển Converse Chuck Taylor với thiết kế vượt thời gian. Phù hợp với mọi phong cách thời trang.',
+        description:
+          'Giày sneaker kinh điển Converse Chuck Taylor với thiết kế vượt thời gian. Phù hợp với mọi phong cách thời trang.',
         brand: 'Converse',
         category: 'Casual',
         basePrice: 1200000,
@@ -222,7 +225,8 @@ export default class extends BaseSeeder {
       },
       {
         name: 'Puma Suede Classic XXI',
-        description: 'Giày sneaker Puma Suede với chất liệu da lộn cao cấp, mang phong cách retro đầy cuốn hút.',
+        description:
+          'Giày sneaker Puma Suede với chất liệu da lộn cao cấp, mang phong cách retro đầy cuốn hút.',
         brand: 'Puma',
         category: 'Sneakers',
         basePrice: 2200000,
@@ -289,7 +293,8 @@ export default class extends BaseSeeder {
       },
       {
         name: 'Vans Old Skool',
-        description: 'Giày sneaker Vans Old Skool với sọc trademark đặc trưng, biểu tượng của văn hóa skate.',
+        description:
+          'Giày sneaker Vans Old Skool với sọc trademark đặc trưng, biểu tượng của văn hóa skate.',
         brand: 'Vans',
         category: 'Sneakers',
         basePrice: 1800000,
@@ -323,9 +328,7 @@ export default class extends BaseSeeder {
             isAvailable: true,
           },
         ],
-        images: [
-          'https://images.unsplash.com/photo-1543508282-6319a3e2621f?w=800',
-        ],
+        images: ['https://images.unsplash.com/photo-1543508282-6319a3e2621f?w=800'],
         createdBy: seller._id,
         features: [
           'Sọc Sidestripe™ cổ điển',

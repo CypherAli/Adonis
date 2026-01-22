@@ -500,13 +500,13 @@ const ProductDetailPageV2 = () => {
                                                 src={img} 
                                                 alt={`View ${idx + 1}`}
                                                 style={{
-                                                onError={(e) => {
-                                                    e.target.src = 'https://via.placeholder.com/100x100?text=No+Image';
-                                                    e.target.style.opacity = '0.6';
-                                                }}
                                                     width: '100%',
                                                     height: '80px',
                                                     objectFit: 'contain'
+                                                }}
+                                                onError={(e) => {
+                                                    e.target.src = 'https://via.placeholder.com/100x100?text=No+Image';
+                                                    e.target.style.opacity = '0.6';
                                                 }}
                                             />
                                         </div>

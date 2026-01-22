@@ -17,7 +17,7 @@ export default class ProductsController {
 
       // Build filter based on role
       const filter: any = {}
-      
+
       if (user.role === 'partner') {
         // Partners only see their own products
         filter.partnerId = user.id

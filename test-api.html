@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test API - Laptop Shop</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 40px 20px;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            padding: 40px;
+        }
+        h1 {
+            color: #667eea;
+            margin-bottom: 30px;
+            text-align: center;
+            font-size: 2.5rem;
+        }
+        .test-section {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+        }
+        .test-section h2 {
+            color: #333;
+            margin-bottom: 15px;
+            font-size: 1.5rem;
+        }
+        button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: 600;
+            transition: transform 0.2s;
+            margin-right: 10px;
+            margin-bottom: 10px;
+        }
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+        }
+        .result {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            margin-top: 15px;
+            border-left: 4px solid #667eea;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        .result pre {
+            white-space: pre-wrap;
+            word-wrap: break-word;
+            font-size: 0.9rem;
+            color: #333;
+        }
+        .success { border-left-color: #10b981; }
+        .error { border-left-color: #ef4444; }
+        .status {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 0.875rem;
+            font-weight: 600;
+            margin-bottom: 10px;
+        }
+        .status.success { background: #d1fae5; color: #065f46; }
+        .status.error { background: #fee2e2; color: #991b1b; }
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid #f3f4f6;
+            border-top: 3px solid #667eea;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            vertical-align: middle;
+            margin-left: 10px;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🧪 API Test Dashboard</h1>
+        
+        <div class="test-section">
+            <h2>📦 Products API</h2>
+            <button onclick="testAPI('/api/products?limit=5', 'products')">Get Products (limit 5)</button>
+            <button onclick="testAPI('/api/products/featured', 'featured')">Get Featured</button>
+            <div id="products" class="result" style="display:none;"></div>
+            <div id="featured" class="result" style="display:none;"></div>
+        </div>
+
+        <div class="test-section">
+            <h2>👤 Auth API</h2>
+            <button onclick="testLogin()">Test Login (admin)</button>
+            <div id="auth" class="result" style="display:none;"></div>
+        </div>
+
+        <div class="test-section">
+            <h2>📊 Dashboard</h2>
+            <button onclick="testAPI('/api/dashboard/stats', 'stats')">Get Stats</button>
+            <div id="stats" class="result" style="display:none;"></div>
+        </div>
+
+        <div class="test-section">
+            <h2>🔍 Database Check</h2>
+            <button onclick="checkDatabase()">Check Database</button>
+            <div id="database" class="result" style="display:none;"></div>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = 'http://localhost:3333';
+        let authToken = '';
+
+        async function testAPI(endpoint, resultId) {
+            const resultDiv = document.getElementById(resultId);
+            resultDiv.style.display = 'block';
+            resultDiv.className = 'result';
+            resultDiv.innerHTML = '<span class="loading"></span> Loading...';
+
+            try {
+                const headers = {};
+                if (authToken) {
+                    headers['Authorization'] = `Bearer ${authToken}`;
+                }
+
+                const response = await fetch(API_BASE + endpoint, { headers });
+                const data = await response.json();
+
+                if (response.ok) {
+                    resultDiv.className = 'result success';
+                    resultDiv.innerHTML = `
+                        <span class="status success">✅ Success (${response.status})</span>
+                        <pre>${JSON.stringify(data, null, 2)}</pre>
+                    `;
+                } else {
+                    resultDiv.className = 'result error';
+                    resultDiv.innerHTML = `
+                        <span class="status error">❌ Error (${response.status})</span>
+                        <pre>${JSON.stringify(data, null, 2)}</pre>
+                    `;
+                }
+            } catch (error) {
+                resultDiv.className = 'result error';
+                resultDiv.innerHTML = `
+                    <span class="status error">❌ Network Error</span>
+                    <pre>${error.message}</pre>
+                `;
+            }
+        }
+
+        async function testLogin() {
+            const resultDiv = document.getElementById('auth');
+            resultDiv.style.display = 'block';
+            resultDiv.className = 'result';
+            resultDiv.innerHTML = '<span class="loading"></span> Logging in...';
+
+            try {
+                const response = await fetch(API_BASE + '/api/auth/login', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        email: 'admin@shoe.com',
+                        password: 'admin123'
+                    })
+                });
+
+                const data = await response.json();
+
+                if (response.ok && data.token) {
+                    authToken = data.token;
+                    resultDiv.className = 'result success';
+                    resultDiv.innerHTML = `
+                        <span class="status success">✅ Login Success</span>
+                        <pre>${JSON.stringify(data, null, 2)}</pre>
+                        <p style="margin-top:10px; color: #10b981; font-weight: 600;">Token saved! You can now test protected routes.</p>
+                    `;
+                } else {
+                    resultDiv.className = 'result error';
+                    resultDiv.innerHTML = `
+                        <span class="status error">❌ Login Failed</span>
+                        <pre>${JSON.stringify(data, null, 2)}</pre>
+                    `;
+                }
+            } catch (error) {
+                resultDiv.className = 'result error';
+                resultDiv.innerHTML = `
+                    <span class="status error">❌ Network Error</span>
+                    <pre>${error.message}</pre>
+                `;
+            }
+        }
+
+        async function checkDatabase() {
+            const resultDiv = document.getElementById('database');
+            resultDiv.style.display = 'block';
+            resultDiv.innerHTML = '<span class="loading"></span> Checking database...';
+
+            try {
+                const [products, users] = await Promise.all([
+                    fetch(API_BASE + '/api/products?limit=1').then(r => r.json()),
+                    fetch(API_BASE + '/api/auth/me').then(r => r.ok ? 'Protected endpoint working' : 'Need auth')
+                ]);
+
+                resultDiv.className = 'result success';
+                resultDiv.innerHTML = `
+                    <span class="status success">✅ Database Connected</span>
+                    <pre>Products API: ${products.totalProducts || 0} products found
+Auth Endpoint: ${users}
+                    
+Full Response:
+${JSON.stringify(products, null, 2)}</pre>
+                `;
+            } catch (error) {
+                resultDiv.className = 'result error';
+                resultDiv.innerHTML = `
+                    <span class="status error">❌ Database Error</span>
+                    <pre>${error.message}</pre>
+                `;
+            }
+        }
+
+        // Auto-check on load
+        window.addEventListener('load', () => {
+            setTimeout(() => checkDatabase(), 500);
+        });
+    </script>
+</body>
+</html>

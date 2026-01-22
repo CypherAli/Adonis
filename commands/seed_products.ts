@@ -92,12 +92,7 @@ export default class SeedProducts extends BaseCommand {
           images: [
             'https://static.nike.com/a/images/t_PDP_1280_v1/f_auto,q_auto:eco/b7d9211c-26e7-431a-ac24-b0540fb3c00f/air-jordan-1-retro-high-og-shoes-Pz6fZ9.png',
           ],
-          features: [
-            'Thiết kế iconic',
-            'Đệm Air cushion',
-            'Da cao cấp',
-            'Grip tuyệt vời',
-          ],
+          features: ['Thiết kế iconic', 'Đệm Air cushion', 'Da cao cấp', 'Grip tuyệt vời'],
           warranty: {
             duration: '6 tháng',
             details: 'Bảo hành lỗi nhà sản xuất',
@@ -171,7 +166,8 @@ export default class SeedProducts extends BaseCommand {
         },
         {
           name: 'Converse Chuck Taylor All Star',
-          description: 'Giày sneaker kinh điển Converse Chuck Taylor với thiết kế đơn giản, phù hợp mọi phong cách.',
+          description:
+            'Giày sneaker kinh điển Converse Chuck Taylor với thiết kế đơn giản, phù hợp mọi phong cách.',
           brand: 'Converse',
           category: 'Casual',
           basePrice: 1200000,
@@ -225,7 +221,8 @@ export default class SeedProducts extends BaseCommand {
         },
         {
           name: 'Puma RS-X Reinvention',
-          description: 'Giày sneaker Puma RS-X với thiết kế chunky đầy cá tính, phù hợp với xu hướng thời trang hiện đại.',
+          description:
+            'Giày sneaker Puma RS-X với thiết kế chunky đầy cá tính, phù hợp với xu hướng thời trang hiện đại.',
           brand: 'Puma',
           category: 'Lifestyle',
           basePrice: 2500000,
@@ -286,9 +283,7 @@ export default class SeedProducts extends BaseCommand {
               isAvailable: true,
             },
           ],
-          images: [
-            'https://images.vans.com/is/image/Vans/D3HY28-HERO?$583x583$',
-          ],
+          images: ['https://images.vans.com/is/image/Vans/D3HY28-HERO?$583x583$'],
           features: ['Jazz Stripe', 'Waffle outsole', 'Padded collar', 'Classic skate shoe'],
           warranty: {
             duration: '3 tháng',
@@ -340,9 +335,7 @@ export default class SeedProducts extends BaseCommand {
               isAvailable: true,
             },
           ],
-          images: [
-            'https://nb.scene7.com/is/image/NB/ml574evg_nb_02_i?$dw_detail_main_lg$',
-          ],
+          images: ['https://nb.scene7.com/is/image/NB/ml574evg_nb_02_i?$dw_detail_main_lg$'],
           features: ['ENCAP midsole', 'Suede/mesh upper', 'EVA foam cushioning'],
           warranty: {
             duration: '6 tháng',
@@ -367,7 +360,9 @@ export default class SeedProducts extends BaseCommand {
       // Display summary
       this.logger.info('📊 Summary:')
       for (const product of insertedProducts) {
-        this.logger.info(`  • ${product.name} (${product.brand}) - ${product.variants.length} variants`)
+        this.logger.info(
+          `  • ${product.name} (${product.brand}) - ${product.variants.length} variants`
+        )
       }
 
       await mongoose.disconnect()

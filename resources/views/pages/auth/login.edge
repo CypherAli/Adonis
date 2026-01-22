@@ -1,42 +1,42 @@
 @layout('layouts/main')
 
-@set('title', 'Login')
+  @set('title', 'Login')
 
-@section('content')
-<div class="container">
-  <div class="row justify-content-center align-items-center" style="min-height: 100vh;">
-    <div class="col-md-5">
-      <div class="card shadow">
-        <div class="card-body p-5">
-          <h2 class="text-center mb-4">
-            <i class="bi bi-laptop"></i> Laptop Shop Admin
-          </h2>
+    @section('content')
+      <div class="container">
+        <div class="row justify-content-center align-items-center" style="min-height: 100vh;">
+          <div class="col-md-5">
+            <div class="card shadow">
+              <div class="card-body p-5">
+                <h2 class="text-center mb-4">
+                  <i class="bi bi-laptop"></i>Laptop Shop Admin
+                </h2>
 
-          <form action="{{ route('auth.doLogin') }}" method="POST">
-            <div class="mb-3">
-              <label for="email" class="form-label">Email</label>
-              <input type="email" class="form-control" id="email" name="email" required>
-            </div>
+                <form action="{{ route('auth.doLogin') }}" method="POST">
+                  <div class="mb-3">
+                    <label for="email" class="form-label">Email</label>
+                    <input type="email" class="form-control" id="email" name="email" required />
+                  </div>
 
-            <div class="mb-3">
-              <label for="password" class="form-label">Password</label>
-              <input type="password" class="form-control" id="password" name="password" required>
-            </div>
+                  <div class="mb-3">
+                    <label for="password" class="form-label">Password</label>
+                    <input type="password" class="form-control" id="password" name="password" required />
+                  </div>
 
-            <button type="submit" class="btn btn-primary w-100">
-              <i class="bi bi-box-arrow-in-right"></i> Login
+                  <button type="submit" class="btn btn-primary w-100">
+                    <i class="bi bi-box-arrow-in-right"></i>Login
             </button>
-          </form>
+                </form>
 
-          <div class="text-center mt-3">
-            <small class="text-muted">
-              Don't have an account? 
+                <div class="text-center mt-3">
+                  <small class="text-muted">
+                    Don't have an account? 
               <a href="{{ route('auth.register') }}">Register here</a>
-            </small>
+                  </small>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </div>
-    </div>
-  </div>
-</div>
-@end
+    @end

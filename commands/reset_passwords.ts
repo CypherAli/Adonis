@@ -19,10 +19,7 @@ export default class ResetPasswords extends BaseCommand {
       const hashedPassword = await bcrypt.hash('123456', salt)
 
       // Direct update bypassing validation
-      const result = await User.updateMany(
-        {},
-        { $set: { password: hashedPassword } }
-      )
+      const result = await User.updateMany({}, { $set: { password: hashedPassword } })
 
       console.log('')
       this.logger.success(`✅ Reset ${result.modifiedCount} passwords successfully!`)

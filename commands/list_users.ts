@@ -23,8 +23,7 @@ export default class ListUsers extends BaseCommand {
         console.log(`   Username: ${user.username}`)
         if (user.shopName) console.log(`   Shop: ${user.shopName}`)
         console.log(`   Active: ${user.isActive ? '✅' : '❌'}`)
-        if (user.role === 'partner')
-          console.log(`   Approved: ${user.isApproved ? '✅' : '❌'}`)
+        if (user.role === 'partner') console.log(`   Approved: ${user.isApproved ? '✅' : '❌'}`)
         console.log('')
       })
 

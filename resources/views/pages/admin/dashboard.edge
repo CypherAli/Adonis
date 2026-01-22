@@ -1,123 +1,165 @@
 @layout('layouts/main')
 
-@set('title', 'Admin Dashboard')
+  @set('title', 'Admin Dashboard')
 
-@section('content')
-<div class="d-flex">
-  @include('partials/sidebar')
+    @section('content')
+      <div class="d-flex">
+        @include('partials/sidebar')
 
-  <div class="flex-fill p-4">
-    <h1 class="mb-4">Dashboard</h1>
+        <div class="flex-fill p-4">
+          <h1 class="mb-4">
+            Dashboard
+          </h1>
 
-    <!-- Statistics Cards -->
-    <div class="row g-3 mb-4">
-      <div class="col-md-3">
-        <div class="card bg-primary text-white">
-          <div class="card-body">
-            <h5 class="card-title"><i class="bi bi-box"></i> Products</h5>
-            <h2>{{ stats.totalProducts }}</h2>
-            <small>{{ stats.activeProducts }} active</small>
+          <!-- Statistics Cards -->
+          <div class="row g-3 mb-4">
+            <div class="col-md-3">
+              <div class="card bg-primary text-white">
+                <div class="card-body">
+                  <h5 class="card-title">
+                    <i class="bi bi-box"></i>Products
+                  </h5>
+                  <h2>
+                    {{ stats.totalProducts }}
+                  </h2>
+                  <small>{{ stats.activeProducts }} active</small>
+                </div>
+              </div>
+            </div>
+
+            <div class="col-md-3">
+              <div class="card bg-success text-white">
+                <div class="card-body">
+                  <h5 class="card-title">
+                    <i class="bi bi-cart"></i>Orders
+                  </h5>
+                  <h2>
+                    {{ stats.totalOrders }}
+                  </h2>
+                  <small>{{ stats.pendingOrders }} pending</small>
+                </div>
+              </div>
+            </div>
+
+            <div class="col-md-3">
+              <div class="card bg-warning text-white">
+                <div class="card-body">
+                  <h5 class="card-title">
+                    <i class="bi bi-hourglass"></i>Processing
+                  </h5>
+                  <h2>
+                    {{ stats.processingOrders }}
+                  </h2>
+                  <small>Orders in process</small>
+                </div>
+              </div>
+            </div>
+
+            <div class="col-md-3">
+              <div class="card bg-info text-white">
+                <div class="card-body">
+                  <h5 class="card-title">
+                    <i class="bi bi-cash"></i>Revenue
+                  </h5>
+                  <h2>
+                    ${{ stats.totalRevenue.toLocaleString() }}
+                  </h2>
+                  <small>Total earnings</small>
+                </div>
+              </div>
+            </div>
           </div>
-        </div>
-      </div>
 
-      <div class="col-md-3">
-        <div class="card bg-success text-white">
-          <div class="card-body">
-            <h5 class="card-title"><i class="bi bi-cart"></i> Orders</h5>
-            <h2>{{ stats.totalOrders }}</h2>
-            <small>{{ stats.pendingOrders }} pending</small>
-          </div>
-        </div>
-      </div>
-
-      <div class="col-md-3">
-        <div class="card bg-warning text-white">
-          <div class="card-body">
-            <h5 class="card-title"><i class="bi bi-hourglass"></i> Processing</h5>
-            <h2>{{ stats.processingOrders }}</h2>
-            <small>Orders in process</small>
-          </div>
-        </div>
-      </div>
-
-      <div class="col-md-3">
-        <div class="card bg-info text-white">
-          <div class="card-body">
-            <h5 class="card-title"><i class="bi bi-cash"></i> Revenue</h5>
-            <h2>${{ stats.totalRevenue.toLocaleString() }}</h2>
-            <small>Total earnings</small>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Recent Orders -->
-    <div class="row">
-      <div class="col-md-8">
-        <div class="card">
-          <div class="card-header">
-            <h5>Recent Orders</h5>
-          </div>
-          <div class="card-body">
-            <table class="table table-hover">
-              <thead>
-                <tr>
-                  <th>Order #</th>
-                  <th>Customer</th>
-                  <th>Amount</th>
-                  <th>Status</th>
-                  <th>Date</th>
-                </tr>
-              </thead>
-              <tbody>
-                @each(order in recentOrders)
-                <tr>
-                  <td>
-                    <a href="{{ route('admin.orders.show', { id: order._id }) }}">
-                      {{ order.orderNumber }}
+          <!-- Recent Orders -->
+          <div class="row">
+            <div class="col-md-8">
+              <div class="card">
+                <div class="card-header">
+                  <h5>
+                    Recent Orders
+                  </h5>
+                </div>
+                <div class="card-body">
+                  <table class="table table-hover">
+                    <thead>
+                      <tr>
+                        <th>
+                          Order #
+                        </th>
+                        <th>
+                          Customer
+                        </th>
+                        <th>
+                          Amount
+                        </th>
+                        <th>
+                          Status
+                        </th>
+                        <th>
+                          Date
+                        </th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      @each(order in recentOrders)
+                        <tr>
+                          <td>
+                            <a href="{{ route('admin.orders.show', { id: order._id }) }}">
+                              {{ order.orderNumber }}
                     </a>
-                  </td>
-                  <td>{{ order.customer.fullName }}</td>
-                  <td>${{ order.totalAmount.toLocaleString() }}</td>
-                  <td>
-                    <span class="badge bg-{{ order.status === 'pending' ? 'warning' : order.status === 'delivered' ? 'success' : 'info' }}">
-                      {{ order.status }}
+                          </td>
+                          <td>
+                            {{ order.customer.fullName }}
+                          </td>
+                          <td>
+                            ${{ order.totalAmount.toLocaleString() }}
+                          </td>
+                          <td>
+                            <span
+                              class="badge bg-{{ order.status === 'pending' ? 'warning' : order.status === 'delivered' ? 'success' : 'info' }}"
+                            >
+                              {{ order.status }}
                     </span>
-                  </td>
-                  <td>{{ order.createdAt.toLocaleDateString() }}</td>
-                </tr>
-                @end
-              </tbody>
-            </table>
-          </div>
-        </div>
-      </div>
+                          </td>
+                          <td>
+                            {{ order.createdAt.toLocaleDateString() }}
+                          </td>
+                        </tr>
+                      @end
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
 
-      <!-- Low Stock Alerts -->
-      <div class="col-md-4">
-        <div class="card">
-          <div class="card-header bg-danger text-white">
-            <h5><i class="bi bi-exclamation-triangle"></i> Low Stock Alert</h5>
-          </div>
-          <div class="card-body">
-            @if(lowStockVariants.length > 0)
-              <ul class="list-group list-group-flush">
-                @each(item in lowStockVariants)
-                <li class="list-group-item">
-                  <strong>{{ item.productName }}</strong><br>
-                  <small>{{ item.variantName }}</small><br>
-                  <span class="badge bg-danger">{{ item.stock }} left</span>
-                </li>
-                @end
-              </ul>
-            @else
-              <p class="text-muted">All products are well stocked</p>
-            @end
+            <!-- Low Stock Alerts -->
+            <div class="col-md-4">
+              <div class="card">
+                <div class="card-header bg-danger text-white">
+                  <h5>
+                    <i class="bi bi-exclamation-triangle"></i>Low Stock Alert
+                  </h5>
+                </div>
+                <div class="card-body">
+                  @if(lowStockVariants.length > 0)
+                    <ul class="list-group list-group-flush">
+                      @each(item in lowStockVariants)
+                        <li class="list-group-item">
+                          <strong>{{ item.productName }}</strong>                          <br />
+                          <small>{{ item.variantName }}</small>                          <br />
+                          <span class="badge bg-danger">{{ item.stock }} left</span>
+                        </li>
+                      @end
+                    </ul>
+                  @else
+                    <p class="text-muted">
+                      All products are well stocked
+                    </p>
+                  @end
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </div>
-    </div>
-  </div>
-</div>
-@end
+    @end
