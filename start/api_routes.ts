@@ -183,11 +183,11 @@ router
       })
       .prefix('/partner')
       .use(middleware.jwtAuth())
+      .use(middleware.partner())
 
     // ==================== CHAT ROUTES ====================
-    // Public routes for guests
+    // Public routes for guests (chỉ xem danh sách partners)
     router.get('/chat/partners', [ChatController, 'getActivePartners'])
-    router.get('/chat/guest/conversations', [ChatController, 'getGuestConversations'])
 
     // Authenticated chat routes
     router
@@ -195,6 +195,7 @@ router
         router.post('/conversations', [ChatController, 'createConversation'])
         router.get('/messages/:conversationId', [ChatController, 'getMessages'])
         router.post('/messages', [ChatController, 'sendMessage'])
+        router.get('/conversations', [ChatController, 'getGuestConversations'])
         router.get('/partner/:partnerId/customers', [ChatController, 'getPartnerCustomers'])
       })
       .prefix('/chat')

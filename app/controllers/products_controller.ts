@@ -218,10 +218,18 @@ export default class ProductsController {
 
   /**
    * Create new product (Partner/Admin only)
+   * LƯU VÀO MONGODB
    */
   async store({ request, response }: HttpContext) {
     try {
       const user = (request as any).user
+
+      // Check authentication
+      if (!user) {
+        return response.status(401).json({
+          message: 'Vui lòng đăng nhập',
+        })
+      }
 
       // Check role: chỉ partner và admin mới tạo được sản phẩm
       if (!['partner', 'admin'].includes(user.role)) {
@@ -258,6 +266,18 @@ export default class ProductsController {
         })
       }
 
+      if (!productData.category) {
+        return response.status(400).json({
+          message: 'Danh mục sản phẩm là bắt buộc',
+        })
+      }
+
+      if (!productData.brand) {
+        return response.status(400).json({
+          message: 'Thương hiệu sản phẩm là bắt buộc',
+        })
+      }
+
       if (!productData.variants || productData.variants.length === 0) {
         return response.status(400).json({
           message: 'Sản phẩm phải có ít nhất 1 biến thể',
@@ -266,28 +286,46 @@ export default class ProductsController {
 
       // Validate variants
       for (const variant of productData.variants) {
-        if (!variant.variantName || !variant.sku || !variant.price) {
+        if (!variant.variantName || !variant.sku || variant.price === undefined) {
           return response.status(400).json({
             message: 'Mỗi biến thể phải có tên, SKU và giá',
           })
         }
+        if (variant.price < 0) {
+          return response.status(400).json({
+            message: 'Giá sản phẩm không được âm',
+          })
+        }
+        if (variant.stock !== undefined && variant.stock < 0) {
+          return response.status(400).json({
+            message: 'Số lượng tồn kho không được âm',
+          })
+        }
       }
 
-      // Create product
+      // LƯU VÀO MONGODB
       const product = new Product({
         ...productData,
         createdBy: user.id,
+        isActive: productData.isActive !== undefined ? productData.isActive : true,
+        isFeatured: productData.isFeatured !== undefined ? productData.isFeatured : false,
+        soldCount: 0,
+        viewCount: 0,
       })
 
+      // Lưu vào database
       await product.save()
 
+      console.log(`✅ Sản phẩm mới đã lưu vào MongoDB: ${product._id}`)
+
       return response.status(201).json({
-        message: 'Tạo sản phẩm thành công',
+        message: 'Tạo sản phẩm thành công và đã lưu vào database',
         product,
       })
     } catch (error) {
+      console.error('❌ Lỗi khi tạo sản phẩm:', error)
       return response.status(500).json({
-        message: 'Lỗi server',
+        message: 'Lỗi server khi tạo sản phẩm',
         error: error.message,
       })
     }
@@ -295,6 +333,7 @@ export default class ProductsController {
 
   /**
    * Update product
+   * CẬP NHẬT VÀO MONGODB
    */
   async update({ params, request, response }: HttpContext) {
     try {
@@ -306,6 +345,22 @@ export default class ProductsController {
         })
       }
 
+      const user = (request as any).user
+
+      // Check authentication
+      if (!user) {
+        return response.status(401).json({
+          message: 'Vui lòng đăng nhập',
+        })
+      }
+
+      // Check role
+      if (!['partner', 'admin'].includes(user.role)) {
+        return response.status(403).json({
+          message: 'Bạn không có quyền cập nhật sản phẩm',
+        })
+      }
+
       const product = await Product.findById(params.id)
 
       if (!product) {
@@ -314,9 +369,8 @@ export default class ProductsController {
         })
       }
 
-      // Check ownership (partner can only update their own products)
-      const user = (request as any).user
-      if (user?.role === 'partner' && product.createdBy.toString() !== user.id) {
+      // Check ownership (partner can only update their own products, admin can update all)
+      if (user.role === 'partner' && product.createdBy.toString() !== user.id) {
         return response.status(403).json({
           message: 'Bạn không có quyền cập nhật sản phẩm này',
         })
@@ -345,31 +399,46 @@ export default class ProductsController {
           })
         }
         for (const variant of updateData.variants) {
-          if (!variant.variantName || !variant.sku || !variant.price) {
+          if (!variant.variantName || !variant.sku || variant.price === undefined) {
             return response.status(400).json({
               message: 'Mỗi biến thể phải có tên, SKU và giá',
+            })
+          }
+          if (variant.price < 0) {
+            return response.status(400).json({
+              message: 'Giá sản phẩm không được âm',
+            })
+          }
+          if (variant.stock !== undefined && variant.stock < 0) {
+            return response.status(400).json({
+              message: 'Số lượng tồn kho không được âm',
             })
           }
         }
       }
 
+      // CẬP NHẬT VÀO MONGODB
       Object.assign(product, updateData)
       await product.save()
 
+      console.log(`✅ Sản phẩm đã cập nhật trong MongoDB: ${product._id}`)
+
       return response.json({
-        message: 'Cập nhật sản phẩm thành công',
+        message: 'Cập nhật sản phẩm thành công trong database',
         product,
       })
     } catch (error) {
+      console.error('❌ Lỗi khi cập nhật sản phẩm:', error)
       return response.status(500).json({
-        message: 'Lỗi server',
+        message: 'Lỗi server khi cập nhật sản phẩm',
         error: error.message,
       })
     }
   }
 
   /**
-   * Delete product
+   * Delete product (HARD DELETE - XÓA CỨNG)
+   * Xóa vĩnh viễn sản phẩm và tất cả dữ liệu liên quan
    */
   async destroy({ params, response, request }: HttpContext) {
     try {
@@ -381,6 +450,22 @@ export default class ProductsController {
         })
       }
 
+      const user = (request as any).user
+
+      // Check authentication
+      if (!user) {
+        return response.status(401).json({
+          message: 'Vui lòng đăng nhập',
+        })
+      }
+
+      // Check role
+      if (!['partner', 'admin'].includes(user.role)) {
+        return response.status(403).json({
+          message: 'Bạn không có quyền xóa sản phẩm',
+        })
+      }
+
       const product = await Product.findById(params.id)
 
       if (!product) {
@@ -389,22 +474,42 @@ export default class ProductsController {
         })
       }
 
-      // Check ownership
-      const user = (request as any).user
-      if (user?.role === 'partner' && product.createdBy.toString() !== user.id) {
+      // Check ownership (partner can only delete their own products, admin can delete all)
+      if (user.role === 'partner' && product.createdBy.toString() !== user.id) {
         return response.status(403).json({
           message: 'Bạn không có quyền xóa sản phẩm này',
         })
       }
 
+      // XÓA CỨNG (HARD DELETE) - Xóa vĩnh viễn khỏi database
+      // 1. Xóa product từ database
       await Product.findByIdAndDelete(params.id)
 
+      // 2. Xóa tất cả reviews của sản phẩm này
+      const { Review } = await import('#models/review')
+      await Review.deleteMany({ product: params.id })
+
+      // 3. Xóa sản phẩm khỏi tất cả giỏ hàng
+      const { Cart } = await import('#models/cart')
+      await Cart.updateMany(
+        { 'items.product': params.id },
+        { $pull: { items: { product: params.id } } }
+      )
+
+      // 4. Note: Không xóa orders đã tạo (lịch sử mua hàng giữ lại)
+      // Nhưng có thể đánh dấu items trong order là "product deleted"
+
       return response.json({
-        message: 'Xóa sản phẩm thành công',
+        message: 'Xóa sản phẩm thành công (xóa vĩnh viễn)',
+        deletedProduct: {
+          id: params.id,
+          name: product.name,
+        },
       })
     } catch (error) {
+      console.error('Delete product error:', error)
       return response.status(500).json({
-        message: 'Lỗi server',
+        message: 'Lỗi server khi xóa sản phẩm',
         error: error.message,
       })
     }

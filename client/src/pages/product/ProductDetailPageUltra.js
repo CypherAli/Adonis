@@ -611,17 +611,35 @@ const ProductDetailPageUltra = () => {
                   ),
                 ]
 
-                // Map Vietnamese color names to hex codes
-                const colorMap = {
-                  'Đen': '#000000',
-                  'Trắng': '#FFFFFF',
-                  'Xanh Navy': '#001f3f',
-                  'Đỏ': '#FF4136',
-                  'Xám': '#AAAAAA',
-                  'Nâu': '#8B4513',
-                  'Xanh Dương': '#0074D9',
-                  'Hồng': '#FF69B4',
-                  'Vàng': '#FFDC00',
+                // Map color names to hex codes (supports both English & Vietnamese)
+                const getColorHex = (colorName) => {
+                  const name = (colorName || '').toLowerCase()
+                  // Black / Đen
+                  if (name.includes('black') || name.includes('đen') || name.includes('core black')) return '#1a1a1a'
+                  // White / Trắng
+                  if (name.includes('white') || name.includes('trắng') || name.includes('cloud white')) return '#ffffff'
+                  // Navy
+                  if (name.includes('navy')) return '#001f3f'
+                  // Red / Đỏ
+                  if (name.includes('red') || name.includes('đỏ')) return '#ef4444'
+                  // Gray / Grey / Xám
+                  if (name.includes('gray') || name.includes('grey') || name.includes('xám')) return '#9ca3af'
+                  // Pink / Hồng
+                  if (name.includes('pink') || name.includes('hồng')) return '#ec4899'
+                  // Purple / Tím
+                  if (name.includes('purple') || name.includes('tím')) return '#a855f7'
+                  // Blue / Xanh dương
+                  if (name.includes('blue') || name.includes('xanh dương')) return '#3b82f6'
+                  // Yellow / Vàng
+                  if (name.includes('yellow') || name.includes('vàng')) return '#fbbf24'
+                  // Orange / Cam
+                  if (name.includes('orange') || name.includes('cam')) return '#f97316'
+                  // Green / Xanh lá
+                  if (name.includes('green') || name.includes('xanh lá')) return '#10b981'
+                  // Brown / Nâu
+                  if (name.includes('brown') || name.includes('nâu')) return '#92400e'
+                  // Default
+                  return '#cccccc'
                 }
 
                 return (
@@ -649,8 +667,8 @@ const ProductDetailPageUltra = () => {
                               <span
                                 className="color-preview"
                                 style={{
-                                  backgroundColor: colorMap[color] || '#CCCCCC',
-                                  border: color === 'Trắng' ? '1px solid #ddd' : 'none',
+                                  backgroundColor: getColorHex(color),
+                                  border: color.toLowerCase().includes('white') || color.toLowerCase().includes('trắng') ? '1px solid #ddd' : 'none',
                                 }}
                               />
                               <span className="color-name">{color}</span>
