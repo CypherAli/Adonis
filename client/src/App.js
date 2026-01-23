@@ -98,8 +98,6 @@ function App() {
             <Route path="/register" element={<RegisterPage />} />
             <Route path="/forgot-password" element={<ForgotPasswordPage />} />
             <Route path="/reset-password" element={<ResetPasswordPage />} />
-            <Route path="/cart" element={<CartPage />} />
-            <Route path="/wishlist" element={<WishlistPage />} />
 
           {/* === Policy Pages === */}
           <Route path="/huong-dan-mua-hang" element={<HuongDanMuaHang />} />
@@ -116,6 +114,10 @@ function App() {
           <Route path="/he-thong-cua-hang" element={<StoresPage />} />
           <Route path="/dieu-khoan" element={<TermsPage />} />
           <Route path="/lien-he" element={<ContactPage />} />
+
+          {/* Public routes - Wishlist & Cart */}
+          <Route path="/wishlist" element={<WishlistPage />} />
+          <Route path="/cart" element={<CartPage />} />
 
           {/* === Protected User Routes === */}
           <Route element={<PrivateRoute allowedRoles={['client', 'partner', 'admin']} />}>

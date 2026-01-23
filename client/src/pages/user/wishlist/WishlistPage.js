@@ -1,14 +1,23 @@
-import React, { useContext } from 'react'
+import React, { useContext, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
+import AuthContext from '../../../context/AuthContext'
 import WishlistContext from '../../../context/WishlistContext'
 import CartContext from '../../../context/CartContext'
 import { PLACEHOLDER_IMAGES } from '../../../utils/placeholder'
 import './WishlistPage.css'
 
 const WishlistPage = () => {
+  const { user } = useContext(AuthContext)
   const { wishlist, removeFromWishlist, clearWishlist } = useContext(WishlistContext)
   const { addToCart } = useContext(CartContext)
   const navigate = useNavigate()
+
+  // Redirect admin to home page - Admin không cần wishlist
+  useEffect(() => {
+    if (user && user.role === 'admin') {
+      navigate('/')
+    }
+  }, [user, navigate])
 
   // Helper to get product price
   const getProductPrice = (product) => {

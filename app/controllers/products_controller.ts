@@ -1,5 +1,8 @@
 import type { HttpContext } from '@adonisjs/core/http'
+import mongoose from 'mongoose'
 import { Product } from '#models/product'
+import { Review } from '#models/review'
+import { Cart } from '#models/cart'
 
 export default class ProductsController {
   /**
@@ -186,7 +189,6 @@ export default class ProductsController {
   async show({ params, response }: HttpContext) {
     try {
       // Validate ObjectId
-      const mongoose = (await import('mongoose')).default
       if (!mongoose.Types.ObjectId.isValid(params.id)) {
         return response.status(400).json({
           message: 'ID sản phẩm không hợp lệ',
@@ -338,7 +340,6 @@ export default class ProductsController {
   async update({ params, request, response }: HttpContext) {
     try {
       // Validate ObjectId
-      const mongoose = (await import('mongoose')).default
       if (!mongoose.Types.ObjectId.isValid(params.id)) {
         return response.status(400).json({
           message: 'ID sản phẩm không hợp lệ',
@@ -443,7 +444,6 @@ export default class ProductsController {
   async destroy({ params, response, request }: HttpContext) {
     try {
       // Validate ObjectId
-      const mongoose = (await import('mongoose')).default
       if (!mongoose.Types.ObjectId.isValid(params.id)) {
         return response.status(400).json({
           message: 'ID sản phẩm không hợp lệ',
@@ -485,19 +485,19 @@ export default class ProductsController {
       // 1. Xóa product từ database
       await Product.findByIdAndDelete(params.id)
 
-      // 2. Xóa tất cả reviews của sản phẩm này
-      const { Review } = await import('#models/review')
+      // 2. Xóa tất cả reviews của sản phẩm này (cleanup cascade)
       await Review.deleteMany({ product: params.id })
 
-      // 3. Xóa sản phẩm khỏi tất cả giỏ hàng
-      const { Cart } = await import('#models/cart')
+      // 3. Xóa sản phẩm khỏi tất cả giỏ hàng của users (tránh lỗi khi khách checkout)
       await Cart.updateMany(
         { 'items.product': params.id },
         { $pull: { items: { product: params.id } } }
       )
 
-      // 4. Note: Không xóa orders đã tạo (lịch sử mua hàng giữ lại)
-      // Nhưng có thể đánh dấu items trong order là "product deleted"
+      // 4. Note: Không xóa orders đã tạo (lịch sử mua hàng giữ lại cho kế toán)
+      // Orders có snapshot data (name, price...) nên vẫn xem được dù product bị xóa
+
+      console.log(`✅ Đã xóa sản phẩm và cleanup data liên quan: ${params.id}`)
 
       return response.json({
         message: 'Xóa sản phẩm thành công (xóa vĩnh viễn)',

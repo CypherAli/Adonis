@@ -84,21 +84,26 @@ const Header = () => {
               <>
                 <NotificationBell />
 
-                <Link to="/wishlist" className="icon-link">
-                  <span className="icon"></span>
-                  <span className="icon-label">Wishlist</span>
-                  {wishlist.length > 0 && <span className="icon-badge">{wishlist.length}</span>}
-                </Link>
-                <button
-                  className="icon-link cart-icon-btn"
-                  onClick={() => setIsCartSidebarOpen(true)}
-                >
-                  <span className="icon"></span>
-                  <span className="icon-label">Cart</span>
-                  {getCartCount() > 0 && (
-                    <span className="icon-badge cart-badge">{getCartCount()}</span>
-                  )}
-                </button>
+                {/* Wishlist và Cart - CHỈ dành cho user và partner, ADMIN KHÔNG CẦN */}
+                {user.role !== 'admin' && (
+                  <>
+                    <Link to="/wishlist" className="icon-link">
+                      <span className="icon"></span>
+                      <span className="icon-label">Wishlist</span>
+                      {wishlist.length > 0 && <span className="icon-badge">{wishlist.length}</span>}
+                    </Link>
+                    <button
+                      className="icon-link cart-icon-btn"
+                      onClick={() => setIsCartSidebarOpen(true)}
+                    >
+                      <span className="icon"></span>
+                      <span className="icon-label">Cart</span>
+                      {getCartCount() > 0 && (
+                        <span className="icon-badge cart-badge">{getCartCount()}</span>
+                      )}
+                    </button>
+                  </>
+                )}
 
                 {/* User Dropdown */}
                 <div className="user-menu">
@@ -208,8 +213,10 @@ const Header = () => {
         </div>
       </div>
 
-      {/* Cart Sidebar */}
-      <CartSidebar isOpen={isCartSidebarOpen} onClose={() => setIsCartSidebarOpen(false)} />
+      {/* Cart Sidebar - CHỈ render cho user và partner, ADMIN KHÔNG CẦN */}
+      {(!user || user.role !== 'admin') && (
+        <CartSidebar isOpen={isCartSidebarOpen} onClose={() => setIsCartSidebarOpen(false)} />
+      )}
     </>
   )
 }
