@@ -41,6 +41,7 @@ const ResetPasswordPage = lazy(() => import('./pages/user/auth/reset-password/Re
 const CheckoutPage = lazy(() => import('./pages/user/cart/checkout/CheckoutPage'))
 const OrdersPage = lazy(() => import('./pages/user/orders/orders-list/OrdersPage'))
 const OrderDetailPage = lazy(() => import('./pages/user/orders/order-detail/OrderDetailPage'))
+const OrderManagement = lazy(() => import('./pages/orders/OrderManagement'))
 const ManagerDashboard = lazy(() => import('./pages/manager/ManagerDashboard'))
 const AdminDashboard = lazy(() => import('./pages/admin/AdminDashboard'))
 const PartnerDashboard = lazy(() => import('./pages/partner/PartnerDashboard'))
@@ -124,6 +125,7 @@ function App() {
             <Route path="/checkout" element={<CheckoutPage />} />
             <Route path="/orders" element={<OrdersPage />} />
             <Route path="/orders/:orderId" element={<OrderDetailPage />} />
+            <Route path="/order-management" element={<OrderManagement />} />
             <Route path="/profile" element={<ProfilePage />} />
           </Route>
 

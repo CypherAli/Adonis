@@ -1,17 +1,21 @@
 import mongoose, { Schema, Document, Types } from 'mongoose'
 
+// ===== ORDER ITEM SNAPSHOT =====
+// Lưu trữ SNAPSHOT (ảnh chụp) dữ liệu sản phẩm tại thời điểm đặt hàng
+// KHÔNG reference trực tiếp để tránh thay đổi khi admin sửa/xóa sản phẩm
+// Tuân thủ chuẩn kế toán: Hóa đơn phải bất biến (immutable)
 interface OrderItem {
-  product: Types.ObjectId
+  product: Types.ObjectId // Reference ID (chỉ để trace back, không dùng để hiển thị)
   variantSku: string
   variantName: string
   seller: Types.ObjectId
-  sellerName?: string
-  name: string
-  brand?: string
-  price: number
-  originalPrice?: number
+  sellerName?: string // SNAPSHOT: Tên shop lúc mua (không lấy từ User)
+  name: string // SNAPSHOT: Tên sản phẩm lúc mua (không lấy từ Product)
+  brand?: string // SNAPSHOT: Brand lúc mua
+  price: number // SNAPSHOT: Giá lúc mua (dù admin sửa giá sau, order vẫn giữ nguyên)
+  originalPrice?: number // SNAPSHOT: Giá gốc lúc mua
   quantity: number
-  imageUrl?: string
+  imageUrl?: string // SNAPSHOT: Hình ảnh lúc mua (dù admin xóa ảnh, order vẫn hiển thị)
   specifications?: {
     size?: string // Shoe size
     color?: string // Color

@@ -20,6 +20,9 @@ const WishlistController = () => import('#controllers/wishlist_controller')
 const ComparisonsController = () => import('#controllers/comparisons_controller')
 const AdminController = () => import('#controllers/admin_controller')
 const ChatController = () => import('#controllers/chat_controller')
+const CategoriesController = () => import('#controllers/categories_controller')
+const BrandsController = () => import('#controllers/brands_controller')
+const AttributesController = () => import('#controllers/attributes_controller')
 
 // API routes with /api prefix
 router
@@ -150,25 +153,74 @@ router
       })
       .prefix('/comparisons')
 
+    // ==================== PUBLIC CATALOG ROUTES ====================
+    // Categories tree for navigation
+    router.get('/categories/tree', [CategoriesController, 'tree'])
+    
+    // Brands list for filters
+    router.get('/brands/list', [BrandsController, 'list'])
+    
+    // Filterable attributes for product filters
+    router.get('/attributes/filterable', [AttributesController, 'filterable'])
+
     // ==================== ADMIN ROUTES ====================
     router
       .group(() => {
+        // Dashboard & Stats
         router.get('/stats', [AdminController, 'stats'])
         router.get('/dashboard', [AdminController, 'dashboard'])
+        router.get('/analytics', [AdminController, 'analytics'])
+        router.get('/revenue-by-shop', [AdminController, 'getRevenueByShop'])
+        
+        // Users Management
         router.get('/users', [AdminController, 'getUsers'])
-        router.get('/orders', [AdminController, 'getOrders'])
         router.put('/users/:userId/approve', [AdminController, 'approvePartner'])
         router.put('/users/:userId/reject', [AdminController, 'rejectPartner'])
         router.put('/users/:userId/toggle-status', [AdminController, 'toggleUserStatus'])
+        
+        // Products Management
         router.get('/products', [AdminController, 'getProducts'])
         router.put('/products/:productId/toggle-featured', [
           AdminController,
           'toggleProductFeatured',
         ])
+        
+        // Orders Management
+        router.get('/orders', [AdminController, 'getOrders'])
+        
+        // Reviews Management
         router.get('/reviews', [AdminController, 'getReviews'])
         router.put('/reviews/:reviewId/moderate', [AdminController, 'moderateReview'])
-        router.get('/analytics', [AdminController, 'analytics'])
-        router.get('/revenue-by-shop', [AdminController, 'getRevenueByShop'])
+        
+        // ==================== CATEGORIES MANAGEMENT ====================
+        router.get('/categories', [CategoriesController, 'index'])
+        router.get('/categories/tree', [CategoriesController, 'tree'])
+        router.get('/categories/:id', [CategoriesController, 'show'])
+        router.post('/categories', [CategoriesController, 'store'])
+        router.put('/categories/:id', [CategoriesController, 'update'])
+        router.delete('/categories/:id', [CategoriesController, 'destroy'])
+        router.put('/categories/:id/toggle-active', [CategoriesController, 'toggleActive'])
+        
+        // ==================== BRANDS MANAGEMENT ====================
+        router.get('/brands', [BrandsController, 'index'])
+        router.get('/brands/list', [BrandsController, 'list'])
+        router.get('/brands/:id', [BrandsController, 'show'])
+        router.post('/brands', [BrandsController, 'store'])
+        router.put('/brands/:id', [BrandsController, 'update'])
+        router.delete('/brands/:id', [BrandsController, 'destroy'])
+        router.put('/brands/:id/toggle-active', [BrandsController, 'toggleActive'])
+        
+        // ==================== ATTRIBUTES MANAGEMENT ====================
+        router.get('/attributes', [AttributesController, 'index'])
+        router.get('/attributes/filterable', [AttributesController, 'filterable'])
+        router.get('/attributes/variants', [AttributesController, 'variants'])
+        router.get('/attributes/:id', [AttributesController, 'show'])
+        router.post('/attributes', [AttributesController, 'store'])
+        router.put('/attributes/:id', [AttributesController, 'update'])
+        router.delete('/attributes/:id', [AttributesController, 'destroy'])
+        router.put('/attributes/:id/toggle-active', [AttributesController, 'toggleActive'])
+        router.post('/attributes/:id/values', [AttributesController, 'addValue'])
+        router.delete('/attributes/:id/values', [AttributesController, 'removeValue'])
       })
       .prefix('/admin')
       .use(middleware.jwtAuth())

@@ -57,7 +57,6 @@ export default class OrdersController {
   async show({ params, request, response }: HttpContext) {
     try {
       // Validate ObjectId
-      const mongoose = (await import('mongoose')).default
       if (!mongoose.Types.ObjectId.isValid(params.id)) {
         return response.status(400).json({
           message: 'ID đơn hàng không hợp lệ',
@@ -178,19 +177,30 @@ export default class OrdersController {
         const itemPrice = variant.price * item.quantity
         subtotal += itemPrice
 
+        // ===== LƯU SNAPSHOT DATA VÀO ORDER =====
+        // Lý do: Hóa đơn phải BẤT BIẾN (immutable) theo chuẩn kế toán
+        // Nếu chỉ lưu productId, khi admin SỬA/XÓA sản phẩm → Order hiển thị SAI
+        //
+        // VÍ DỤ: Khách mua "Nike Air - 2tr" ngày 1/1
+        //        Admin sửa thành "Adidas Boost - 3tr" ngày 15/1
+        //        → Nếu không snapshot: Order sẽ hiển thị "Adidas - 3tr" ❌ SAI!
+        //        → Với snapshot: Order vẫn hiển thị "Nike - 2tr" ✅ ĐÚNG!
+        //
+        // Snapshot bao gồm: name, brand, price, image, variantName, specs
+        // → Đảm bảo order KHÔNG THAY ĐỔI dù sản phẩm bị sửa/xóa
         orderItems.push({
-          product: product._id,
+          product: product._id, // Reference ID (để trace back nếu cần)
           variantSku: variant.sku,
-          variantName: variant.variantName,
+          variantName: variant.variantName, // SNAPSHOT: Tên variant lúc mua
           seller: product.createdBy,
-          sellerName: item.sellerName,
-          name: product.name,
-          brand: product.brand,
-          price: variant.price,
-          originalPrice: variant.originalPrice,
+          sellerName: item.sellerName, // SNAPSHOT: Tên shop lúc mua
+          name: product.name, // SNAPSHOT: Tên sản phẩm lúc mua
+          brand: product.brand, // SNAPSHOT: Brand lúc mua
+          price: variant.price, // SNAPSHOT: Giá lúc mua
+          originalPrice: variant.originalPrice, // SNAPSHOT: Giá gốc lúc mua
           quantity: item.quantity,
-          imageUrl: product.images?.[0],
-          specifications: variant.specifications,
+          imageUrl: product.images?.[0], // SNAPSHOT: Hình ảnh lúc mua
+          specifications: variant.specifications, // SNAPSHOT: Thông số lúc mua
           status: 'confirmed',
           statusHistory: [
             {
@@ -268,7 +278,6 @@ export default class OrdersController {
   async updateStatus({ params, request, response }: HttpContext) {
     try {
       // Validate ObjectId
-      const mongoose = (await import('mongoose')).default
       if (!mongoose.Types.ObjectId.isValid(params.id)) {
         return response.status(400).json({
           message: 'ID đơn hàng không hợp lệ',
