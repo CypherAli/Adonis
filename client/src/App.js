@@ -41,7 +41,7 @@ const ResetPasswordPage = lazy(() => import('./pages/user/auth/reset-password/Re
 const CheckoutPage = lazy(() => import('./pages/user/cart/checkout/CheckoutPage'))
 const OrderManagement = lazy(() => import('./pages/orders/OrderManagement'))
 const ManagerDashboard = lazy(() => import('./pages/manager/ManagerDashboard'))
-const AdminDashboard = lazy(() => import('./pages/admin/AdminDashboard'))
+const AdminDashboard = lazy(() => import('./pages/admin/AdminDashboardClean'))
 const PartnerDashboard = lazy(() => import('./pages/partner/PartnerDashboard'))
 const PartnerOrders = lazy(() => import('./pages/partner/PartnerOrders'))
 const HuongDanMuaHang = lazy(() => import('./pages/chat/HuongDanMuaHang'))
