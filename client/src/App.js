@@ -39,8 +39,6 @@ const WishlistPage = lazy(() => import('./pages/user/wishlist/WishlistPage'))
 const ForgotPasswordPage = lazy(() => import('./pages/user/auth/forgot-password/ForgotPasswordPage'))
 const ResetPasswordPage = lazy(() => import('./pages/user/auth/reset-password/ResetPasswordPage'))
 const CheckoutPage = lazy(() => import('./pages/user/cart/checkout/CheckoutPage'))
-const OrdersPage = lazy(() => import('./pages/user/orders/orders-list/OrdersPage'))
-const OrderDetailPage = lazy(() => import('./pages/user/orders/order-detail/OrderDetailPage'))
 const OrderManagement = lazy(() => import('./pages/orders/OrderManagement'))
 const ManagerDashboard = lazy(() => import('./pages/manager/ManagerDashboard'))
 const AdminDashboard = lazy(() => import('./pages/admin/AdminDashboard'))
@@ -123,8 +121,6 @@ function App() {
           {/* === Protected User Routes === */}
           <Route element={<PrivateRoute allowedRoles={['client', 'partner', 'admin']} />}>
             <Route path="/checkout" element={<CheckoutPage />} />
-            <Route path="/orders" element={<OrdersPage />} />
-            <Route path="/orders/:orderId" element={<OrderDetailPage />} />
             <Route path="/order-management" element={<OrderManagement />} />
             <Route path="/profile" element={<ProfilePage />} />
           </Route>

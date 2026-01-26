@@ -13,7 +13,6 @@ import { middleware } from './kernel.js'
 // Import controllers
 const AuthController = () => import('#controllers/auth_controller')
 const ProductsController = () => import('#controllers/products_controller')
-const OrdersController = () => import('#controllers/orders_controller')
 const CartsController = () => import('#controllers/carts_controller')
 const ReviewsController = () => import('#controllers/reviews_controller')
 const WishlistController = () => import('#controllers/wishlist_controller')
@@ -60,16 +59,7 @@ router
       .prefix('/products')
 
     // ==================== ORDERS ROUTES ====================
-    router
-      .group(() => {
-        router.get('/', [OrdersController, 'index'])
-        router.get('/:id', [OrdersController, 'show'])
-        router.post('/', [OrdersController, 'store'])
-        router.put('/:id/status', [OrdersController, 'updateStatus'])
-        router.post('/:id/cancel', [OrdersController, 'cancel'])
-      })
-      .prefix('/orders')
-      .use(middleware.jwtAuth())
+    // Removed: Admin doesn't need personal orders
 
     // ==================== CART ROUTES ====================
     router

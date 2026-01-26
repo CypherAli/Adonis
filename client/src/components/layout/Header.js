@@ -124,9 +124,6 @@ const Header = () => {
                     <Link to="/profile" className="dropdown-item">
                       My Profile
                     </Link>
-                    <Link to="/orders" className="dropdown-item">
-                      My Orders
-                    </Link>
                     {user && user.role === 'admin' && (
                       <Link to="/admin" className="dropdown-item">
                         Admin Dashboard
