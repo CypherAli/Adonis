@@ -117,8 +117,13 @@ export const AuthProvider = ({ children }) => {
   }
 
   const updateUser = (userData) => {
-    setUserDetails(userData)
-    localStorage.setItem('userDetails', JSON.stringify(userData))
+    // Merge với userDetails hiện tại để giữ lại các field không được cập nhật
+    const updatedDetails = {
+      ...userDetails,
+      ...userData,
+    }
+    setUserDetails(updatedDetails)
+    localStorage.setItem('userDetails', JSON.stringify(updatedDetails))
   }
 
   return (

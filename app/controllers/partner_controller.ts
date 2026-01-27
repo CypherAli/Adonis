@@ -140,8 +140,15 @@ export default class PartnerController {
           shopName: userDetails.shopName,
           phone: userDetails.phone,
           address: userDetails.address,
+          description: userDetails.description,
+          businessType: userDetails.businessType,
+          taxCode: userDetails.taxCode,
+          bankAccount: userDetails.bankAccount,
+          bankName: userDetails.bankName,
           avatar: userDetails.avatar,
           role: userDetails.role,
+          isApproved: userDetails.isApproved,
+          isActive: userDetails.isActive,
         },
       }
 

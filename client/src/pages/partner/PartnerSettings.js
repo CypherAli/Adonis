@@ -131,7 +131,21 @@ const PartnerSettings = () => {
       // Update user details in context
       if (response.data.user) {
         updateUser(response.data.user)
-        // Also update avatar preview if changed
+        
+        // Update local profileData state to reflect changes
+        setProfileData({
+          shopName: response.data.user.shopName || '',
+          email: response.data.user.email || '',
+          phone: response.data.user.phone || '',
+          address: response.data.user.address || '',
+          description: response.data.user.description || '',
+          businessType: response.data.user.businessType || 'individual',
+          taxCode: response.data.user.taxCode || '',
+          bankAccount: response.data.user.bankAccount || '',
+          bankName: response.data.user.bankName || '',
+        })
+        
+        // Update avatar preview if changed
         if (response.data.user.avatar) {
           setAvatarPreview(response.data.user.avatar)
         }
