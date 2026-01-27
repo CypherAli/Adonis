@@ -45,6 +45,7 @@ const AdminDashboard = lazy(() => import('./pages/admin/AdminDashboardClean'))
 const AddProduct = lazy(() => import('./pages/admin/AddProduct'))
 const EditProduct = lazy(() => import('./pages/admin/EditProduct'))
 const PartnerOrders = lazy(() => import('./pages/partner/PartnerOrders'))
+const PartnerSettings = lazy(() => import('./pages/partner/PartnerSettings'))
 const HuongDanMuaHang = lazy(() => import('./pages/chat/HuongDanMuaHang'))
 const InstallmentGuidePage = lazy(() => import('./pages/guide/InstallmentGuidePage'))
 const ProfilePage = lazy(() => import('./pages/user/profile/ProfilePage'))
@@ -130,6 +131,7 @@ function App() {
           <Route element={<PrivateRoute allowedRoles={['partner', 'admin']} />}>
             <Route path="/manager" element={<ManagerDashboard />} />
             <Route path="/partner/orders" element={<PartnerOrders />} />
+            <Route path="/partner/settings" element={<PartnerSettings />} />
           </Route>
 
           {/* === Protected Admin & Partner Routes === */}

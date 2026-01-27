@@ -12,6 +12,28 @@ export interface UserDocument extends Document {
   phone?: string
   avatar?: string
   isActive: boolean
+  address?: string
+  description?: string
+  businessType?: string
+  taxCode?: string
+  bankAccount?: string
+  bankName?: string
+  notificationSettings?: {
+    emailNotifications?: boolean
+    orderNotifications?: boolean
+    promotionNotifications?: boolean
+    systemNotifications?: boolean
+  }
+  storeSettings?: {
+    autoApproveOrders?: boolean
+    minOrderAmount?: number
+    freeShippingThreshold?: number
+    workingHours?: {
+      start?: string
+      end?: string
+    }
+    workingDays?: string[]
+  }
   addresses?: Array<{
     label: 'home' | 'office' | 'other'
     fullName?: string
@@ -78,6 +100,7 @@ export interface UserDocument extends Document {
   createdAt?: Date
   updatedAt?: Date
   comparePassword(candidatePassword: string): Promise<boolean>
+  verifyPassword(candidatePassword: string): Promise<boolean>
 }
 
 const UserSchema = new Schema<UserDocument>(
@@ -131,6 +154,50 @@ const UserSchema = new Schema<UserDocument>(
     isActive: {
       type: Boolean,
       default: true,
+    },
+    address: {
+      type: String,
+      trim: true,
+    },
+    description: {
+      type: String,
+      trim: true,
+    },
+    businessType: {
+      type: String,
+      enum: ['individual', 'company', 'enterprise'],
+      default: 'individual',
+    },
+    taxCode: {
+      type: String,
+      trim: true,
+    },
+    bankAccount: {
+      type: String,
+      trim: true,
+    },
+    bankName: {
+      type: String,
+      trim: true,
+    },
+    notificationSettings: {
+      emailNotifications: { type: Boolean, default: true },
+      orderNotifications: { type: Boolean, default: true },
+      promotionNotifications: { type: Boolean, default: false },
+      systemNotifications: { type: Boolean, default: true },
+    },
+    storeSettings: {
+      autoApproveOrders: { type: Boolean, default: false },
+      minOrderAmount: { type: Number, default: 0 },
+      freeShippingThreshold: { type: Number, default: 0 },
+      workingHours: {
+        start: { type: String, default: '08:00' },
+        end: { type: String, default: '22:00' },
+      },
+      workingDays: {
+        type: [String],
+        default: ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'],
+      },
     },
     addresses: [
       {
@@ -268,6 +335,11 @@ UserSchema.pre('save', async function () {
 
 // Method to compare password
 UserSchema.methods.comparePassword = async function (candidatePassword: string): Promise<boolean> {
+  return bcrypt.compare(candidatePassword, this.password)
+}
+
+// Alias for verifyPassword
+UserSchema.methods.verifyPassword = async function (candidatePassword: string): Promise<boolean> {
   return bcrypt.compare(candidatePassword, this.password)
 }
 

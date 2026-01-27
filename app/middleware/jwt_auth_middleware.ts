@@ -4,8 +4,9 @@ import jwt from 'jsonwebtoken'
 import env from '#start/env'
 
 export default class JwtAuthMiddleware {
-  async handle({ request, response }: HttpContext, next: NextFn) {
+  async handle(ctx: HttpContext, next: NextFn) {
     try {
+      const { request, response } = ctx
       // Get token from header
       const authHeader = request.header('Authorization')
 
@@ -20,8 +21,9 @@ export default class JwtAuthMiddleware {
       // Verify token
       const decoded = jwt.verify(token, env.get('JWT_SECRET', 'your-secret-key'))
 
-      // Attach user to context
+      // Attach user to both request and auth for compatibility
       ;(request as any).user = decoded
+      ;(ctx as any).auth = { user: decoded }
 
       await next()
     } catch (error) {

@@ -139,6 +139,11 @@ const Header = () => {
                         Add Product
                       </Link>
                     )}
+                    {user && user.role === 'partner' && (
+                      <Link to="/partner/settings" className="dropdown-item">
+                        Settings
+                      </Link>
+                    )}
                     {user && (user.role === 'admin' || user.role === 'partner') && (
                       <Link to="/manager" className="dropdown-item">
                         Product Management
