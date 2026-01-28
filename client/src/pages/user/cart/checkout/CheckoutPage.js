@@ -1,15 +1,15 @@
-import React, { useState, useContext } from 'react'
+import React, { useState, useContext, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import axios from '../../../../api/axiosConfig'
 import AuthContext from '../../../../context/AuthContext'
+import CartContext from '../../../../context/CartContext'
 import { useToast } from '../../../../components/common/Toast'
 import { PLACEHOLDER_IMAGES } from '../../../../utils/placeholder'
 import './CheckoutPage.css'
 
 const CheckoutPage = () => {
   const { user } = useContext(AuthContext)
-  const [cartItems, setCartItems] = useState([])
-  const [loading, setLoading] = useState(true)
+  const { cartItems, loading: cartLoading, loadCartFromAPI, clearCart } = useContext(CartContext)
   const [submitting, setSubmitting] = useState(false)
   const navigate = useNavigate()
   const toast = useToast()
@@ -29,21 +29,8 @@ const CheckoutPage = () => {
   // Payment Method
   const [paymentMethod, setPaymentMethod] = useState('cod') // cod, bank, momo, zalopay
 
-  const fetchCart = async () => {
-    try {
-      const res = await axios.get('/cart')
-      console.log('🛒 Cart data:', res.data)
-      console.log('🛒 Cart items:', res.data.items)
-      setCartItems(res.data.items || [])
-    } catch (err) {
-      toast.error('Cannot load cart')
-    } finally {
-      setLoading(false)
-    }
-  }
-
   // Load cart on mount
-  React.useEffect(() => {
+  useEffect(() => {
     if (!user) {
       toast.error('Please login to checkout')
       // Save intended route before redirecting
@@ -51,9 +38,12 @@ const CheckoutPage = () => {
       navigate('/login')
       return
     }
-    fetchCart()
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [user, navigate])
+    
+    // Reload cart to ensure fresh data
+    if (loadCartFromAPI) {
+      loadCartFromAPI()
+    }
+  }, [user, navigate, toast, loadCartFromAPI])
 
   const calculateSubtotal = () => {
     return cartItems.reduce((sum, item) => sum + item.price * item.quantity, 0)
@@ -117,7 +107,7 @@ const CheckoutPage = () => {
     try {
       const orderData = {
         items: cartItems.map((item) => ({
-          product: item.product._id,
+          product: item._id, // Use _id from mapped cart item
           variantSku: item.variantSku,
           quantity: item.quantity,
           sellerName: item.sellerName,
@@ -143,7 +133,12 @@ const CheckoutPage = () => {
       console.log('✅ Order response:', response.data)
 
       // Clear cart after successful order
-      await axios.delete('/cart/clear')
+      if (clearCart) {
+        await clearCart()
+      } else {
+        // Fallback if clearCart is not available
+        await axios.delete('/cart/clear')
+      }
 
       toast.success('Order placed successfully!')
       navigate(`/orders`)
@@ -158,7 +153,7 @@ const CheckoutPage = () => {
     }
   }
 
-  if (loading) {
+  if (cartLoading) {
     return (
       <div className="loading-container">
         <div className="spinner"></div>
@@ -385,11 +380,15 @@ const CheckoutPage = () => {
                 {cartItems.map((item, index) => (
                   <div key={index} className="summary-item">
                     <img
-                      src={item.product?.imageUrl || PLACEHOLDER_IMAGES.avatar}
-                      alt={item.product?.name}
+                      src={item.imageUrl || item.images?.[0] || PLACEHOLDER_IMAGES.product}
+                      alt={item.name}
+                      onError={(e) => {
+                        e.target.src = PLACEHOLDER_IMAGES.product
+                      }}
                     />
                     <div className="item-info">
-                      <p className="item-name">{item.product?.name}</p>
+                      <p className="item-name">{item.name}</p>
+                      <p className="item-variant">SKU: {item.variantSku}</p>
                       <p className="item-quantity">x{item.quantity}</p>
                     </div>
                     <p className="item-price">{(item.price * item.quantity).toLocaleString()} ₫</p>

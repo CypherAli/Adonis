@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import axios from '../../../../api/axiosConfig'
 import AuthContext from '../../../../context/AuthContext'
 import { PLACEHOLDER_IMAGES } from '../../../../utils/placeholder'
+import ReviewModal from '../../../../components/review/ReviewModal'
 import './OrdersPage.css'
 
 const OrdersPage = () => {
@@ -11,6 +12,8 @@ const OrdersPage = () => {
   const [error, setError] = useState(null)
   const [filterStatus, setFilterStatus] = useState('all')
   const [selectedOrder, setSelectedOrder] = useState(null)
+  const [reviewModal, setReviewModal] = useState({ isOpen: false, order: null, product: null })
+  const [userReviews, setUserReviews] = useState([]) // Track user's reviews
   const { user, loading: authLoading } = useContext(AuthContext)
   const navigate = useNavigate()
 
@@ -23,6 +26,7 @@ const OrdersPage = () => {
       return
     }
     fetchOrders()
+    fetchUserReviews()
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user, authLoading])
 
@@ -42,6 +46,25 @@ const OrdersPage = () => {
     }
   }
 
+  const fetchUserReviews = async () => {
+    try {
+      const res = await axios.get('/reviews/my-reviews')
+      setUserReviews(res.data.reviews || [])
+    } catch (err) {
+      console.error('Error fetching user reviews:', err)
+      setUserReviews([])
+    }
+  }
+
+  const hasReviewed = (productId) => {
+    // Check if user has already reviewed this product
+    const prodId = typeof productId === 'object' ? productId._id : productId
+    return userReviews.some(review => {
+      const reviewProductId = typeof review.product === 'object' ? review.product._id : review.product
+      return reviewProductId === prodId
+    })
+  }
+
   const handleCancelOrder = async (orderId) => {
     if (!window.confirm('Are you sure you want to cancel this order?')) {
       return
@@ -54,6 +77,19 @@ const OrdersPage = () => {
     } catch (err) {
       alert(err.response?.data?.message || 'Cannot cancel order')
     }
+  }
+
+  const handleOpenReview = (order, product) => {
+    setReviewModal({ isOpen: true, order, product })
+  }
+
+  const handleCloseReview = () => {
+    setReviewModal({ isOpen: false, order: null, product: null })
+  }
+
+  const handleReviewSubmitted = () => {
+    fetchOrders() // Refresh orders list
+    fetchUserReviews() // Refresh reviews list
   }
 
   const getStatusInfo = (status) => {
@@ -267,6 +303,19 @@ const OrdersPage = () => {
                       <div className="item-price">
                         {(item.price * item.quantity).toLocaleString()} VNĐ
                       </div>
+                      {['confirmed', 'processing', 'shipped', 'delivered'].includes(order.status) && !hasReviewed(item.product || item._id) && (
+                        <button 
+                          className="btn-review-item"
+                          onClick={() => handleOpenReview(order, item)}
+                        >
+                          ⭐ Đánh giá
+                        </button>
+                      )}
+                      {['confirmed', 'processing', 'shipped', 'delivered'].includes(order.status) && hasReviewed(item.product || item._id) && (
+                        <span className="reviewed-badge">
+                          ✓ Đã đánh giá
+                        </span>
+                      )}
                     </div>
                   ))}
                 </div>
@@ -337,10 +386,7 @@ const OrdersPage = () => {
                       </button>
                     )}
                     {order.status === 'delivered' && (
-                      <>
-                        <button className="btn-reorder">🔄 Mua lại</button>
-                        <button className="btn-review">⭐ Đánh giá</button>
-                      </>
+                      <button className="btn-reorder">🔄 Mua lại</button>
                     )}
                     {order.tracking?.trackingNumber && (
                       <button className="btn-track">📍 Theo dõi</button>
@@ -443,6 +489,15 @@ const OrdersPage = () => {
           </div>
         </div>
       )}
+
+      {/* Review Modal */}
+      <ReviewModal
+        isOpen={reviewModal.isOpen}
+        onClose={handleCloseReview}
+        order={reviewModal.order}
+        product={reviewModal.product}
+        onReviewSubmitted={handleReviewSubmitted}
+      />
     </div>
   )
 }

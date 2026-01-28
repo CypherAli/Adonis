@@ -191,9 +191,14 @@ export default class AdminController {
 
       const [orders, total] = await Promise.all([
         Order.find(filter)
-          .populate('user', 'username email')
-          .populate('items.product', 'name brand')
-          .populate('items.seller', 'username shopName')
+          .populate({
+            path: 'user',
+            select: 'username email',
+          })
+          .populate({
+            path: 'items.product',
+            select: 'name brand images variants',
+          })
           .sort({ createdAt: -1 })
           .skip(skip)
           .limit(limitNum)

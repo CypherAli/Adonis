@@ -114,8 +114,9 @@ export default class ReviewsController {
   async create({ request, response }: HttpContext) {
     try {
       const userId = (request as any).user.id
-      const { productId, rating, title, comment, images, pros, cons } = request.only([
+      const { productId, orderId, rating, title, comment, images, pros, cons } = request.only([
         'productId',
+        'orderId',
         'rating',
         'title',
         'comment',
@@ -137,9 +138,17 @@ export default class ReviewsController {
         })
       }
 
+      // Validate productId format
+      if (!mongoose.Types.ObjectId.isValid(productId)) {
+        return response.status(400).json({
+          message: 'ID sản phẩm không hợp lệ',
+        })
+      }
+
       // Check if product exists
       const product = await Product.findById(productId)
       if (!product) {
+        console.error('Product not found for ID:', productId)
         return response.status(404).json({
           message: 'Không tìm thấy sản phẩm',
         })
@@ -154,15 +163,27 @@ export default class ReviewsController {
       }
 
       // Check if user purchased this product - REQUIRED for review
-      const deliveredOrder = await Order.findOne({
-        'user': userId,
-        'items.product': productId,
-        'status': 'delivered',
-      })
+      let confirmedOrder
+      if (orderId) {
+        // If orderId is provided, use it
+        confirmedOrder = await Order.findOne({
+          '_id': orderId,
+          'user': userId,
+          'items.product': productId,
+          'status': { $in: ['confirmed', 'processing', 'shipped', 'delivered'] },
+        })
+      } else {
+        // Otherwise find any confirmed order with this product
+        confirmedOrder = await Order.findOne({
+          'user': userId,
+          'items.product': productId,
+          'status': { $in: ['confirmed', 'processing', 'shipped', 'delivered'] },
+        })
+      }
 
-      if (!deliveredOrder) {
+      if (!confirmedOrder) {
         return response.status(403).json({
-          message: 'Bạn chỉ có thể đánh giá sản phẩm sau khi đã nhận hàng',
+          message: 'Bạn chỉ có thể đánh giá sản phẩm sau khi đơn hàng đã được xác nhận',
         })
       }
 
@@ -170,7 +191,7 @@ export default class ReviewsController {
       const review = new Review({
         product: productId,
         user: userId,
-        order: deliveredOrder._id,
+        order: confirmedOrder._id,
         rating,
         title,
         comment,
@@ -348,6 +369,32 @@ export default class ReviewsController {
         review,
       })
     } catch (error) {
+      return response.status(500).json({
+        message: 'Lỗi server',
+        error: error.message,
+      })
+    }
+  }
+
+  /**
+   * Get current user's reviews
+   */
+  async getMyReviews({ request, response }: HttpContext) {
+    try {
+      const userId = (request as any).user.id
+
+      const reviews = await Review.find({ user: userId })
+        .populate('product', 'name imageUrl')
+        .populate('order', 'orderNumber')
+        .sort({ createdAt: -1 })
+        .lean()
+
+      return response.json({
+        reviews,
+        total: reviews.length,
+      })
+    } catch (error) {
+      console.error('Get my reviews error:', error)
       return response.status(500).json({
         message: 'Lỗi server',
         error: error.message,

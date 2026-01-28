@@ -13,6 +13,7 @@ import { middleware } from './kernel.js'
 // Import controllers
 const AuthController = () => import('#controllers/auth_controller')
 const ProductsController = () => import('#controllers/products_controller')
+const OrdersController = () => import('#controllers/orders_controller')
 const CartsController = () => import('#controllers/carts_controller')
 const ReviewsController = () => import('#controllers/reviews_controller')
 const WishlistController = () => import('#controllers/wishlist_controller')
@@ -60,7 +61,16 @@ router
       .prefix('/products')
 
     // ==================== ORDERS ROUTES ====================
-    // Removed: Admin doesn't need personal orders
+    router
+      .group(() => {
+        router.get('/', [OrdersController, 'index']) // Get user's orders
+        router.post('/', [OrdersController, 'store']) // Create new order
+        router.get('/:id', [OrdersController, 'show']) // Get order detail
+        router.put('/:id/status', [OrdersController, 'updateStatus']) // Update order status (admin/partner)
+        router.put('/:id/cancel', [OrdersController, 'cancel']) // Cancel order
+      })
+      .prefix('/orders')
+      .use(middleware.jwtAuth())
 
     // ==================== CART ROUTES ====================
     router
@@ -69,6 +79,7 @@ router
         router.post('/', [CartsController, 'addItem'])
         router.put('/:itemId', [CartsController, 'updateItem'])
         router.delete('/:itemId', [CartsController, 'removeItem'])
+        router.delete('/clear/all', [CartsController, 'clear'])
         router.delete('/clear', [CartsController, 'clear'])
       })
       .prefix('/cart')
@@ -78,6 +89,7 @@ router
     router
       .group(() => {
         router.get('/', [ReviewsController, 'index']) // Get all reviews with pagination
+        router.get('/my-reviews', [ReviewsController, 'getMyReviews']).use(middleware.jwtAuth()) // Get current user's reviews
         router.get('/product/:productId', [ReviewsController, 'getByProduct'])
         router.post('/', [ReviewsController, 'create']).use(middleware.jwtAuth())
         router.put('/:id', [ReviewsController, 'update']).use(middleware.jwtAuth())

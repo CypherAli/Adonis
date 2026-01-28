@@ -115,4 +115,4 @@ ProductSchema.pre('save', async function () {
   }
 })
 
-export const Product = mongoose.model<ProductDocument>('Product', ProductSchema)
+export const Product = mongoose.models.Product || mongoose.model<ProductDocument>('Product', ProductSchema)

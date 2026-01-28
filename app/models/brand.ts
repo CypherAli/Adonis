@@ -48,4 +48,4 @@ BrandSchema.pre('save', function () {
   }
 })
 
-export const Brand = mongoose.model<BrandInterface>('Brand', BrandSchema)
+export const Brand = mongoose.models.Brand || mongoose.model<BrandInterface>('Brand', BrandSchema)

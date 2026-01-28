@@ -190,6 +190,7 @@
   gap: 16px;
   padding: 12px 0;
   border-bottom: 1px solid #f5f5f5;
+  position: relative;
 }
 
 .order-item:last-child {
@@ -225,6 +226,25 @@
   font-size: 16px;
   font-weight: 700;
   color: #ee4d2d;
+  margin-right: 12px;
+}
+
+.btn-review-item {
+  padding: 8px 16px;
+  background: linear-gradient(135deg, #ffc107 0%, #ff9800 100%);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s;
+  white-space: nowrap;
+}
+
+.btn-review-item:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(255, 193, 7, 0.4);
 }
 .shipping-section {
   padding: 16px 24px;
@@ -612,4 +632,40 @@
   .no-orders h2 {
     font-size: 24px;
   }
+}
+
+/* Review Button Styles */
+.btn-review-item {
+  padding: 8px 16px;
+  background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s;
+  white-space: nowrap;
+}
+
+.btn-review-item:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(245, 87, 108, 0.3);
+}
+
+.btn-review-item:active {
+  transform: translateY(0);
+}
+
+.reviewed-badge {
+  padding: 8px 16px;
+  background: #e8f5e9;
+  color: #2e7d32;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  white-space: nowrap;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
 }
