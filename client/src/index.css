@@ -298,7 +298,7 @@ body {
   flex-direction: column;
   align-items: center;
   gap: 4px;
-  color: var(--nav-text);
+  color: #ffffff;
   text-decoration: none;
   padding: 8px 12px;
   border-radius: 10px;
@@ -594,7 +594,7 @@ body {
   display: flex;
   align-items: center;
   gap: 8px;
-  color: var(--nav-text);
+  color: #ffffff;
   text-decoration: none;
   font-weight: 600;
   padding: 8px 16px;
@@ -631,7 +631,7 @@ body {
   display: flex;
   align-items: center;
   gap: 8px;
-  color: var(--nav-text);
+  color: #ffffff;
   text-decoration: none;
   font-weight: 600;
   padding: 8px 16px;
@@ -687,7 +687,7 @@ body {
 
 .logout-btn {
   background: rgba(255, 255, 255, 0.15);
-  color: var(--nav-text);
+  color: #ffffff;
 }
 
 .logout-btn:hover {
@@ -696,7 +696,7 @@ body {
 
 .login-link {
   background: rgba(255, 255, 255, 0.12);
-  color: var(--nav-text);
+  color: #ffffff;
 }
 
 .login-link:hover {
