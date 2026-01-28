@@ -156,7 +156,7 @@ notificationSchema.methods.archive = async function (
   return this
 }
 
-export const Notification = mongoose.model<NotificationDocument, NotificationModel>(
+export const Notification = mongoose.models.Notification || mongoose.model<NotificationDocument, NotificationModel>(
   'Notification',
   notificationSchema
 )

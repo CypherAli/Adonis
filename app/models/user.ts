@@ -348,4 +348,4 @@ UserSchema.virtual('isLocked').get(function () {
   return !!(this.lockUntil && this.lockUntil > new Date())
 })
 
-export const User = mongoose.model<UserDocument>('User', UserSchema)
+export const User = mongoose.models.User || mongoose.model<UserDocument>('User', UserSchema)

@@ -43,7 +43,11 @@ export default class DashboardController {
 
     // Get recent orders (last 10)
     const recentOrders = await Order.find()
-      .populate('user', 'username email')
+      .select('orderNumber totalAmount status createdAt user')
+      .populate({
+        path: 'user',
+        select: 'username email',
+      })
       .sort({ createdAt: -1 })
       .limit(10)
       .lean()

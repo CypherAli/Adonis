@@ -5,8 +5,9 @@ import env from '#start/env'
 
 export default class JwtAuthMiddleware {
   async handle(ctx: HttpContext, next: NextFn) {
+    const { request, response } = ctx
+    
     try {
-      const { request, response } = ctx
       // Get token from header
       const authHeader = request.header('Authorization')
 

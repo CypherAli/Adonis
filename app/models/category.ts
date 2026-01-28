@@ -48,4 +48,4 @@ CategorySchema.pre('save', function () {
   }
 })
 
-export const Category = mongoose.model<CategoryInterface>('Category', CategorySchema)
+export const Category = mongoose.models.Category || mongoose.model<CategoryInterface>('Category', CategorySchema)

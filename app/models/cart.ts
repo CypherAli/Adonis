@@ -83,4 +83,4 @@ CartSchema.virtual('totalItems').get(function () {
 CartSchema.set('toJSON', { virtuals: true })
 CartSchema.set('toObject', { virtuals: true })
 
-export const Cart = mongoose.model<CartDocument>('Cart', CartSchema)
+export const Cart = mongoose.models.Cart || mongoose.model<CartDocument>('Cart', CartSchema)

@@ -50,6 +50,7 @@ const ReviewForm = ({ productId, productName, onSuccess, onCancel }) => {
       const cons = formData.cons.filter((c) => c.trim() !== '')
 
       const reviewData = {
+        productId: productId,
         rating: formData.rating,
         title: formData.title.trim(),
         comment: formData.comment.trim(),
@@ -57,7 +58,7 @@ const ReviewForm = ({ productId, productName, onSuccess, onCancel }) => {
         cons: cons.length > 0 ? cons : undefined,
       }
 
-      await axios.post(`/reviews/product/${productId}`, reviewData, {
+      await axios.post(`/api/reviews`, reviewData, {
         headers: { Authorization: `Bearer ${token}` },
       })
 

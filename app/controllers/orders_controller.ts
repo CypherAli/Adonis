@@ -28,8 +28,10 @@ export default class OrdersController {
 
       const [orders, total] = await Promise.all([
         Order.find(filter)
-          .populate('items.product')
-          .populate('items.seller', 'username shopName')
+          .populate({
+            path: 'items.product',
+            select: 'name brand images variants createdBy',
+          })
           .sort({ createdAt: -1 })
           .skip(skip)
           .limit(limitNum)
@@ -64,9 +66,18 @@ export default class OrdersController {
       }
 
       const order = await Order.findById(params.id)
-        .populate('user', 'username email phone')
-        .populate('items.product')
-        .populate('items.seller', 'username shopName phone email')
+        .populate({
+          path: 'user',
+          select: 'username email phone',
+        })
+        .populate({
+          path: 'items.product',
+          select: 'name brand images variants createdBy',
+          populate: {
+            path: 'createdBy',
+            select: 'username shopName phone email',
+          },
+        })
         .lean()
 
       if (!order) {
@@ -77,10 +88,14 @@ export default class OrdersController {
 
       // Check ownership
       const user = (request as any).user
+      const productSellers = order.items
+        .map((item: any) => item.product?.createdBy?._id?.toString())
+        .filter(Boolean)
+
       if (
         order.user._id.toString() !== user?.id &&
         user?.role !== 'admin' &&
-        !order.items.some((item: any) => item.seller._id.toString() === user?.id)
+        !productSellers.includes(user?.id)
       ) {
         return response.status(403).json({
           message: 'Bạn không có quyền xem đơn hàng này',
@@ -177,29 +192,14 @@ export default class OrdersController {
         const itemPrice = variant.price * item.quantity
         subtotal += itemPrice
 
-        // ===== LƯU SNAPSHOT DATA VÀO ORDER =====
-        // Lý do: Hóa đơn phải BẤT BIẾN (immutable) theo chuẩn kế toán
-        // Nếu chỉ lưu productId, khi admin SỬA/XÓA sản phẩm → Order hiển thị SAI
-        //
-        // VÍ DỤ: Khách mua "Nike Air - 2tr" ngày 1/1
-        //        Admin sửa thành "Adidas Boost - 3tr" ngày 15/1
-        //        → Nếu không snapshot: Order sẽ hiển thị "Adidas - 3tr" ❌ SAI!
-        //        → Với snapshot: Order vẫn hiển thị "Nike - 2tr" ✅ ĐÚNG!
-        //
-        // Snapshot bao gồm: name, brand, price, image, variantName, specs
-        // → Đảm bảo order KHÔNG THAY ĐỔI dù sản phẩm bị sửa/xóa
+        // Chỉ lưu references và price
+        // Khi cần hiển thị → populate từ Product collection
+        // Price được lưu để tính tổng tiền, tránh thay đổi bill
         orderItems.push({
-          product: product._id, // Reference ID (để trace back nếu cần)
+          product: product._id,
           variantSku: variant.sku,
-          variantName: variant.variantName, // SNAPSHOT: Tên variant lúc mua
-          seller: product.createdBy, // Reference đến User model để lấy shopName khi cần
-          name: product.name, // SNAPSHOT: Tên sản phẩm lúc mua
-          brand: product.brand, // SNAPSHOT: Brand lúc mua
-          price: variant.price, // SNAPSHOT: Giá lúc mua
-          originalPrice: variant.originalPrice, // SNAPSHOT: Giá gốc lúc mua
           quantity: item.quantity,
-          imageUrl: product.images?.[0], // SNAPSHOT: Hình ảnh lúc mua
-          specifications: variant.specifications, // SNAPSHOT: Thông số lúc mua
+          price: variant.price, // Lưu giá để tính bill, không bị ảnh hưởng khi admin sửa giá
           status: 'confirmed',
           statusHistory: [
             {
@@ -286,7 +286,7 @@ export default class OrdersController {
       const { status, note } = request.only(['status', 'note'])
       const user = (request as any).user
 
-      const order = await Order.findById(params.id)
+      const order = await Order.findById(params.id).populate('items.product', 'createdBy')
 
       if (!order) {
         return response.status(404).json({
@@ -296,7 +296,9 @@ export default class OrdersController {
 
       // Check permissions
       const isAdmin = user.role === 'admin'
-      const isOrderSeller = order.items.some((item: any) => item.seller.toString() === user.id)
+      const isOrderSeller = order.items.some(
+        (item: any) => item.product?.createdBy?.toString() === user.id
+      )
 
       if (!isAdmin && !isOrderSeller) {
         return response.status(403).json({

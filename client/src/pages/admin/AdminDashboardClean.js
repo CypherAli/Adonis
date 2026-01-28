@@ -786,6 +786,7 @@ const AdminDashboardClean = () => {
                     <th>User</th>
                     <th>Product</th>
                     <th>Rating</th>
+                    <th>Review</th>
                     <th>Status</th>
                     <th>Actions</th>
                   </tr>
@@ -793,7 +794,7 @@ const AdminDashboardClean = () => {
                 <tbody>
                   {reviews.length === 0 ? (
                     <tr>
-                      <td colSpan="5">
+                      <td colSpan="6">
                         <div className="empty-state-clean">
                           <div className="empty-state-icon"><FiMessageSquare /></div>
                           <div className="empty-state-text">No reviews found</div>
@@ -807,6 +808,20 @@ const AdminDashboardClean = () => {
                         <td className="text-muted text-sm">{review.product?.name || 'N/A'}</td>
                         <td>
                           <span style={{ color: '#f59e0b' }}>★</span> {review.rating}/5
+                        </td>
+                        <td>
+                          <div style={{ maxWidth: '300px' }}>
+                            <strong>{review.title}</strong>
+                            <div style={{ 
+                              fontSize: '0.875rem', 
+                              color: '#6b7280',
+                              overflow: 'hidden',
+                              textOverflow: 'ellipsis',
+                              whiteSpace: 'nowrap'
+                            }}>
+                              {review.comment}
+                            </div>
+                          </div>
                         </td>
                         <td>
                           <StatusBadge status={review.isApproved ? 'approved' : 'pending'} />

@@ -280,7 +280,7 @@ export const CartProvider = ({ children }) => {
   const clearCart = async () => {
     if (user) {
       try {
-        await axios.delete('/cart/clear/all')
+        await axios.delete('/cart/clear')
       } catch (error) {
         console.error('Failed to clear cart:', error)
       }
