@@ -3,6 +3,7 @@ import mongoose from 'mongoose'
 import { Product } from '#models/product'
 import { Review } from '#models/review'
 import { Cart } from '#models/cart'
+import { User } from '#models/user'
 
 export default class ProductsController {
   /**
@@ -168,7 +169,6 @@ export default class ProductsController {
       // Execute query
       const [products, total] = await Promise.all([
         Product.find(filter)
-          .populate('createdBy', 'username shopName email role')
           .sort(sort)
           .skip(skip)
           .limit(limitNum)

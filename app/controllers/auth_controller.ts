@@ -99,27 +99,35 @@ export default class AuthController {
       }
 
       // Find user
+      console.log('🔍 Finding user with email:', email)
       const user = await User.findOne({ email })
       if (!user) {
+        console.log('❌ User not found')
         return response.status(400).json({
           message: 'Email hoặc mật khẩu không đúng',
         })
       }
+      console.log('✅ User found:', { id: user._id, username: user.username, isActive: user.isActive })
 
       // Check if account is active
       if (!user.isActive) {
+        console.log('❌ Account is not active')
         return response.status(403).json({
           message: 'Tài khoản đã bị khóa',
         })
       }
 
       // Compare password
+      console.log('🔐 Comparing password...')
       const isMatch = await user.comparePassword(password)
+      console.log('🔐 Password match result:', isMatch)
       if (!isMatch) {
+        console.log('❌ Password does not match')
         return response.status(400).json({
           message: 'Email hoặc mật khẩu không đúng',
         })
       }
+      console.log('✅ Password matched, generating token...')
 
       // Generate JWT token
       const token = jwt.sign(
