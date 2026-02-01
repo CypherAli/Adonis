@@ -82,10 +82,17 @@ export default class AuthController {
    */
   async login({ request, response }: HttpContext) {
     try {
+      // Debug: Log raw request
+      console.log('📨 Request body:', request.body())
+      console.log('📨 Request all:', request.all())
+      
       const { email, password } = request.only(['email', 'password'])
+
+      console.log('📧 Login attempt:', { email, passwordProvided: !!password })
 
       // Validation
       if (!email || !password) {
+        console.log('❌ Missing email or password')
         return response.status(400).json({
           message: 'Email và mật khẩu là bắt buộc',
         })
@@ -140,6 +147,13 @@ export default class AuthController {
           isApproved: user.isApproved,
         },
         message: 'Đăng nhập thành công!',
+      }
+
+      // Redirect URL based on role
+      if (user.role === 'admin') {
+        responseData.redirectUrl = '/admin'
+      } else if (user.role === 'partner') {
+        responseData.redirectUrl = '/manager'
       }
 
       // Add warning if partner not approved

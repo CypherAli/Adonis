@@ -27,7 +27,10 @@ export default class ProductsController {
       }
       // Admin sees all products (no filter)
 
-      const products = await Product.find(filter).sort({ createdAt: -1 }).lean()
+      const products = await Product.find(filter)
+        .populate('createdBy', 'username shopName email role')
+        .sort({ createdAt: -1 })
+        .lean()
 
       return response.json({
         products,
@@ -164,7 +167,12 @@ export default class ProductsController {
 
       // Execute query
       const [products, total] = await Promise.all([
-        Product.find(filter).sort(sort).skip(skip).limit(limitNum).lean(),
+        Product.find(filter)
+          .populate('createdBy', 'username shopName email role')
+          .sort(sort)
+          .skip(skip)
+          .limit(limitNum)
+          .lean(),
         Product.countDocuments(filter),
       ])
 
