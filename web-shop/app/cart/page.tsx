@@ -48,6 +48,19 @@ export default function CartPage() {
   })
   const [paymentMethod, setPaymentMethod] = useState('cod')
   const [notes, setNotes] = useState('')
+  
+  // Mã đơn hàng tạm thời cho QR code (cố định khi mở modal)
+  const [tempOrderCode, setTempOrderCode] = useState('')
+  
+  // Generate order code when opening checkout modal
+  useEffect(() => {
+    if (showCheckoutModal && !tempOrderCode) {
+      setTempOrderCode(`DH${Date.now().toString().slice(-8)}`)
+    }
+    if (!showCheckoutModal) {
+      setTempOrderCode('')
+    }
+  }, [showCheckoutModal, tempOrderCode])
 
   // Redirect admin to home - Admin không cần cart
   useEffect(() => {
@@ -598,6 +611,44 @@ export default function CartPage() {
                     </div>
                   </label>
                 </div>
+
+                {/* VietQR Bank Transfer Section */}
+                {paymentMethod === 'bank_transfer' && tempOrderCode && (
+                  <div className="bank-transfer-qr-section">
+                    <div className="qr-header">
+                      <h4>🏦 Thông tin chuyển khoản</h4>
+                      <p>Quét mã QR bên dưới để thanh toán</p>
+                    </div>
+                    <div className="qr-code-container">
+                      <img 
+                        src={`https://img.vietqr.io/image/SHB-0848565650-compact.png?amount=${getSelectedTotal() + getShippingFee()}&addInfo=${encodeURIComponent(`${tempOrderCode} ${shippingInfo.fullName || 'Khach hang'}`)}`}
+                        alt="VietQR Payment Code"
+                        className="qr-code-image"
+                      />
+                    </div>
+                    <div className="bank-info">
+                      <div className="bank-info-row">
+                        <span className="label">Ngân hàng:</span>
+                        <span className="value">SHB - Ngân hàng TMCP Sài Gòn - Hà Nội</span>
+                      </div>
+                      <div className="bank-info-row">
+                        <span className="label">Số tài khoản:</span>
+                        <span className="value account-number">0848565650</span>
+                      </div>
+                      <div className="bank-info-row">
+                        <span className="label">Số tiền:</span>
+                        <span className="value amount">{(getSelectedTotal() + getShippingFee()).toLocaleString('vi-VN')} đ</span>
+                      </div>
+                      <div className="bank-info-row">
+                        <span className="label">Nội dung CK:</span>
+                        <span className="value transfer-content">{tempOrderCode} {shippingInfo.fullName || 'Khach hang'}</span>
+                      </div>
+                    </div>
+                    <div className="qr-note">
+                      <p>⚠️ Vui lòng chuyển khoản đúng số tiền và nội dung để đơn hàng được xử lý nhanh chóng.</p>
+                    </div>
+                  </div>
+                )}
               </div>
 
               <div className="form-section">
