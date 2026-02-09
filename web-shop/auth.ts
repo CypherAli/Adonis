@@ -105,7 +105,11 @@ export const authConfig: NextAuthConfig = {
   // Debug mode for development
   debug: process.env.NODE_ENV === 'development',
   
-  secret: process.env.NEXTAUTH_SECRET || 'development-secret-change-in-production',
+  // Secret key - required in production
+  secret: process.env.NEXTAUTH_SECRET,
+  
+  // Trust host for production deployments
+  trustHost: true,
 }
 
 export const { handlers, auth, signIn, signOut } = NextAuth(authConfig)
