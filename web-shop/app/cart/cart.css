@@ -845,3 +845,113 @@
 .btn-submit-order:hover {
   background: #7c3aed;
 }
+
+/* ===== VIETQR BANK TRANSFER SECTION ===== */
+.bank-transfer-qr-section {
+  margin-top: 20px;
+  padding: 20px;
+  background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
+  border-radius: 12px;
+  border: 2px solid #0ea5e9;
+  text-align: center;
+}
+
+.qr-header {
+  margin-bottom: 16px;
+}
+
+.qr-header h4 {
+  font-size: 18px;
+  font-weight: 700;
+  color: #0369a1;
+  margin: 0 0 8px 0;
+}
+
+.qr-header p {
+  font-size: 14px;
+  color: #0284c7;
+  margin: 0;
+}
+
+.qr-code-container {
+  display: flex;
+  justify-content: center;
+  margin: 20px 0;
+}
+
+.qr-code-image {
+  max-width: 280px;
+  width: 100%;
+  height: auto;
+  border-radius: 12px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+  border: 4px solid white;
+}
+
+.bank-info {
+  background: white;
+  border-radius: 10px;
+  padding: 16px;
+  margin-top: 16px;
+  text-align: left;
+}
+
+.bank-info-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 0;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.bank-info-row:last-child {
+  border-bottom: none;
+}
+
+.bank-info-row .label {
+  font-size: 13px;
+  color: #64748b;
+  font-weight: 500;
+}
+
+.bank-info-row .value {
+  font-size: 14px;
+  color: #1e293b;
+  font-weight: 600;
+  text-align: right;
+  max-width: 60%;
+}
+
+.bank-info-row .account-number {
+  font-family: 'Courier New', monospace;
+  font-size: 16px;
+  color: #0369a1;
+  letter-spacing: 1px;
+}
+
+.bank-info-row .amount {
+  color: #dc2626;
+  font-size: 16px;
+  font-weight: 700;
+}
+
+.bank-info-row .transfer-content {
+  color: #7c3aed;
+  font-family: 'Courier New', monospace;
+  font-size: 13px;
+}
+
+.qr-note {
+  margin-top: 16px;
+  padding: 12px;
+  background: #fef3c7;
+  border-radius: 8px;
+  border: 1px solid #f59e0b;
+}
+
+.qr-note p {
+  margin: 0;
+  font-size: 13px;
+  color: #92400e;
+  line-height: 1.5;
+}
