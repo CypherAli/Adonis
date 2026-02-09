@@ -7,7 +7,7 @@ export default class ClearProducts extends BaseCommand {
   static description = 'Clear all products from database'
 
   async run() {
-    console.log('🗑️  Clearing all products...')
+    console.log('  Clearing all products...')
 
     try {
       if (mongoose.connection.readyState !== 1) {
@@ -17,11 +17,11 @@ export default class ClearProducts extends BaseCommand {
       }
 
       const result = await Product.deleteMany({})
-      console.log(`✅ Deleted ${result.deletedCount} products`)
+      console.log(` Deleted ${result.deletedCount} products`)
 
       await mongoose.disconnect()
     } catch (error) {
-      console.error('❌ Error:', error)
+      console.error(' Error:', error)
     }
   }
 }

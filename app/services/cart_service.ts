@@ -31,7 +31,7 @@ export class CartService {
       let cart = await Cart.findOne({ user: userId })
         .populate({
           path: 'items.product',
-          select: 'name brand imageUrl variants',
+          select: 'name brand images variants basePrice',
         })
         .populate({
           path: 'items.seller',
@@ -45,8 +45,29 @@ export class CartService {
         return { items: [] }
       }
 
-      // Filter out items with deleted products
-      const validItems = cart.items.filter((item: any) => item.product !== null)
+      // Filter out items with deleted products and format for frontend
+      const validItems = cart.items
+        .filter((item: any) => item.product !== null)
+        .map((item: any) => {
+          const product = item.product
+          const variant = product.variants?.find((v: any) => v.sku === item.variantSku)
+          
+          return {
+            _id: item._id,
+            product: item.product,
+            name: product.name,
+            brand: product.brand,
+            price: item.price,
+            quantity: item.quantity,
+            variantSku: item.variantSku,
+            stock: variant?.stock || 0,
+            imageUrl: product.images?.[0] || null,
+            seller: item.seller,
+            sellerName: item.sellerName || item.seller?.shopName || item.seller?.username,
+            size: variant?.specifications?.size,
+            color: variant?.specifications?.color,
+          }
+        })
 
       return { items: validItems }
     } catch (error) {
@@ -60,6 +81,11 @@ export class CartService {
    */
   static async addItem({ userId, productId, variantSku, quantity = 1 }: AddToCartInput) {
     try {
+      // Validate productId format
+      if (!productId || typeof productId !== 'string') {
+        throw new Error('Product ID không hợp lệ')
+      }
+
       // Find product
       const product = await Product.findById(productId).populate('createdBy', 'username shopName')
 
@@ -69,29 +95,40 @@ export class CartService {
 
       // If no variantSku provided, use the first available variant
       let selectedVariantSku = variantSku
-      if (!selectedVariantSku) {
-        const firstAvailableVariant = product.variants.find(
-          (v: any) => v.isAvailable && v.stock > 0
-        )
-        if (!firstAvailableVariant) {
-          throw new Error(ERROR_MESSAGES.OUT_OF_STOCK)
+      let variant = null
+      
+      // Check if product has variants
+      if (product.variants && product.variants.length > 0) {
+        if (!selectedVariantSku) {
+          const firstAvailableVariant = product.variants.find(
+            (v: any) => v.isAvailable && v.stock > 0
+          )
+          if (!firstAvailableVariant) {
+            throw new Error(ERROR_MESSAGES.OUT_OF_STOCK)
+          }
+          selectedVariantSku = firstAvailableVariant.sku
         }
-        selectedVariantSku = firstAvailableVariant.sku
-      }
 
-      // Find variant
-      const variant = product.variants.find((v: any) => v.sku === selectedVariantSku)
+        // Find variant
+        variant = product.variants.find((v: any) => v.sku === selectedVariantSku)
 
-      if (!variant) {
-        throw new Error('Không tìm thấy biến thể')
-      }
+        if (!variant) {
+          throw new Error('Không tìm thấy biến thể')
+        }
 
-      if (!variant.isAvailable) {
-        throw new Error('Biến thể này hiện không khả dụng')
-      }
+        if (!variant.isAvailable) {
+          throw new Error('Biến thể này hiện không khả dụng')
+        }
 
-      if (variant.stock < quantity) {
-        throw new Error(`Chỉ còn ${variant.stock} sản phẩm`)
+        if (variant.stock < quantity) {
+          throw new Error(`Chỉ còn ${variant.stock} sản phẩm`)
+        }
+      } else {
+        // Product without variants - use base price and stock
+        if (product.stock < quantity) {
+          throw new Error(`Chỉ còn ${product.stock} sản phẩm`)
+        }
+        selectedVariantSku = undefined
       }
 
       // Use findOneAndUpdate for atomic operation
@@ -106,9 +143,11 @@ export class CartService {
 
         if (existingItem) {
           const newQuantity = existingItem.quantity + quantity
-
-          if (newQuantity > variant.stock) {
-            throw new Error(`Chỉ còn ${variant.stock} sản phẩm`)
+          
+          // Check stock limit
+          const maxStock = variant ? variant.stock : product.stock
+          if (newQuantity > maxStock) {
+            throw new Error(`Chỉ còn ${maxStock} sản phẩm`)
           }
 
           // Update existing item quantity

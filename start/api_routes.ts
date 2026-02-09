@@ -39,6 +39,8 @@ router
         // Protected auth routes
         router.get('/me', [AuthController, 'me']).use(middleware.jwtAuth())
         router.put('/profile', [AuthController, 'updateProfile']).use(middleware.jwtAuth())
+        router.put('/change-password', [AuthController, 'changePassword']).use(middleware.jwtAuth())
+        router.get('/stats', [AuthController, 'getUserStats']).use(middleware.jwtAuth())
       })
       .prefix('/auth')
 
@@ -103,8 +105,9 @@ router
       .group(() => {
         router.get('/', [WishlistController, 'index'])
         router.post('/', [WishlistController, 'add'])
-        router.delete('/:productId', [WishlistController, 'remove'])
+        // IMPORTANT: /clear/all MUST be before /:productId to avoid matching "clear" as productId
         router.delete('/clear/all', [WishlistController, 'clear'])
+        router.delete('/:productId', [WishlistController, 'remove'])
         router.get('/check/:productId', [WishlistController, 'check'])
       })
       .prefix('/user/wishlist')

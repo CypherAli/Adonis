@@ -264,7 +264,7 @@ export default class NotificationsController {
           notificationData = {
             ...notificationData,
             type: 'admin_new_user',
-            title: '🔔 New User Registered',
+            title: ' New User Registered',
             message: 'A new user has registered: test@example.com',
             priority: 'high',
             actionUrl: '/admin/users',
@@ -275,7 +275,7 @@ export default class NotificationsController {
           notificationData = {
             ...notificationData,
             type: 'partner_order_new',
-            title: '📦 New Order Received',
+            title: ' New Order Received',
             message: 'You have a new order #ORD-12345 for $250.00',
             priority: 'high',
             actionUrl: '/partner/orders',
@@ -287,7 +287,7 @@ export default class NotificationsController {
           notificationData = {
             ...notificationData,
             type: 'order_confirmed',
-            title: '✅ Order Confirmed',
+            title: ' Order Confirmed',
             message: 'Your order #ORD-12345 has been confirmed and is being processed',
             priority: 'normal',
             actionUrl: '/orders',
