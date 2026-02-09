@@ -12,7 +12,7 @@ export default class SeedAccounts extends BaseCommand {
   static description = 'Seed multiple admin, user, and partner accounts'
 
   async run() {
-    this.logger.info('🌱 Starting to seed accounts...')
+    this.logger.info(' Starting to seed accounts...')
 
     const hashedPassword = await bcrypt.hash('123456', 10)
 

@@ -1,0 +1,140 @@
+/* ==================== NAVIGATION & PAGE TRANSITIONS ==================== */
+
+/* Smooth page transitions */
+@view-transition {
+  navigation: auto;
+}
+
+/* Optimize Link prefetching */
+a[href] {
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Force GPU acceleration for smoother animations */
+.animated-product-card,
+.bestseller-card,
+[class*="card"],
+[class*="modal"] {
+  transform: translateZ(0);
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+  perspective: 1000px;
+  -webkit-perspective: 1000px;
+}
+
+/* Optimize image rendering */
+img {
+  image-rendering: -webkit-optimize-contrast;
+  image-rendering: crisp-edges;
+}
+
+/* Prevent layout shift with aspect ratios */
+img[width][height] {
+  height: auto;
+  aspect-ratio: attr(width) / attr(height);
+}
+
+/* Next.js Image component optimization */
+img[loading="lazy"] {
+  content-visibility: auto;
+}
+
+/* Prevent Cumulative Layout Shift (CLS) */
+.relative.h-64,
+.bestseller-image,
+.animated-image-wrapper,
+[class*="image-wrapper"] {
+  contain: layout;
+  min-height: 16rem;
+}
+
+/* Ensure images have defined size before load */
+img[src]:not([width]):not([height]) {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+/* Smooth scrolling */
+html {
+  scroll-behavior: smooth;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Optimize animations for performance */
+@media (prefers-reduced-motion: no-preference) {
+  * {
+    scroll-behavior: smooth;
+  }
+  
+  [class*="transition"],
+  [class*="animate"] {
+    will-change: auto;
+  }
+}
+
+/* Disable animations if user prefers */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* Loading states */
+.loading-skeleton {
+  background: linear-gradient(
+    90deg,
+    #f0f0f0 25%,
+    #e0e0e0 50%,
+    #f0f0f0 75%
+  );
+  background-size: 200% 100%;
+  animation: loading 1.5s ease-in-out infinite;
+}
+
+@keyframes loading {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}
+
+/* Prevent layout shift on hover */
+button,
+a {
+  transform: translateZ(0);
+  transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+button:hover,
+a:hover {
+  transform: translateY(-2px) translateZ(0);
+}
+
+/* Optimize rendering */
+* {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+}
+
+/* Container query for responsive cards */
+@supports (container-type: inline-size) {
+  .product-grid {
+    container-type: inline-size;
+  }
+}
+
+/* Intersection Observer optimization */
+[loading="lazy"] {
+  content-visibility: auto;
+  contain-intrinsic-size: 0 400px;
+}

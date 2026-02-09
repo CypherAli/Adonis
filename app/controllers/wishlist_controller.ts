@@ -11,6 +11,8 @@ export default class WishlistController {
       const user = (request as any).user
       const userId = user.id
 
+      console.log('[Wishlist] Fetching wishlist for user:', userId)
+
       // Admin không có wishlist
       if (user.role === 'admin') {
         return response.status(403).json({
@@ -72,6 +74,8 @@ export default class WishlistController {
     try {
       const user = (request as any).user
       const userId = user.id
+
+      console.log('[Wishlist] Add request for user:', userId)
 
       // Admin không có wishlist
       if (user.role === 'admin') {
@@ -186,6 +190,8 @@ export default class WishlistController {
       const user = (request as any).user
       const userId = user.id
 
+      console.log('[Wishlist] Clear request for user:', userId)
+
       // Admin không có wishlist
       if (user.role === 'admin') {
         return response.status(403).json({
@@ -200,6 +206,8 @@ export default class WishlistController {
         },
         { new: true }
       )
+
+      console.log('[Wishlist] After clear, user wishlist:', userDoc?.wishlist?.length || 0, 'items')
 
       if (!userDoc) {
         return response.status(404).json({

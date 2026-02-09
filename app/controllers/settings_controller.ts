@@ -17,7 +17,7 @@ export default class SettingsController {
 
       return response.json(settings)
     } catch (error) {
-      console.error('❌ Get settings error:', error)
+      console.error(' Get settings error:', error)
       return response.status(500).json({
         message: 'Lỗi khi lấy cài đặt',
         error: error.message,
@@ -111,9 +111,9 @@ export default class SettingsController {
         settings,
       })
     } catch (error) {
-      console.error('❌ Update settings error:', error)
+      console.error(' Update settings error:', error)
       const isInertia = request.header('X-Inertia')
-      
+
       if (isInertia) {
         session.flash('error', 'Lỗi khi cập nhật cài đặt')
         return response.redirect('/admin/settings')
@@ -153,7 +153,7 @@ export default class SettingsController {
 
       return response.json(settings)
     } catch (error) {
-      console.error('❌ Get public settings error:', error)
+      console.error(' Get public settings error:', error)
       return response.status(500).json({
         message: 'Lỗi khi lấy cài đặt công khai',
         error: error.message,
@@ -176,7 +176,7 @@ export default class SettingsController {
         settings,
       })
     } catch (error) {
-      console.error('❌ Reset settings error:', error)
+      console.error(' Reset settings error:', error)
       return response.status(500).json({
         message: 'Lỗi khi reset cài đặt',
         error: error.message,

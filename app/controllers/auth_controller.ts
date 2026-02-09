@@ -233,14 +233,17 @@ export default class AuthController {
   async updateProfile({ request, response }: HttpContext) {
     try {
       const userId = (request as any).user.id
-      const { username, email, phone, shopName, currentPassword, newPassword } = request.only([
-        'username',
-        'email',
-        'phone',
-        'shopName',
-        'currentPassword',
-        'newPassword',
-      ])
+      const { name, username, email, phone, address, shopName, currentPassword, newPassword } =
+        request.only([
+          'name',
+          'username',
+          'email',
+          'phone',
+          'address',
+          'shopName',
+          'currentPassword',
+          'newPassword',
+        ])
 
       const user = await User.findById(userId)
       if (!user) {
@@ -250,9 +253,11 @@ export default class AuthController {
       }
 
       // Update basic fields
+      if (name) user.name = name
       if (username) user.username = username
       if (email) user.email = email
       if (phone) user.phone = phone
+      if (address) user.address = address
       if (shopName && user.role === 'partner') user.shopName = shopName
 
       // Password update
@@ -272,9 +277,11 @@ export default class AuthController {
         message: 'Cập nhật thông tin thành công',
         user: {
           id: user._id,
+          name: user.name,
           username: user.username,
           email: user.email,
           phone: user.phone,
+          address: user.address,
           shopName: user.shopName,
         },
       })
@@ -293,6 +300,88 @@ export default class AuthController {
     return response.json({
       message: 'Đăng xuất thành công',
     })
+  }
+
+  /**
+   * Get user statistics
+   */
+  async getUserStats({ request, response }: HttpContext) {
+    try {
+      const userId = (request as any).user.id
+
+      // Fetch user orders count
+      const ordersCount = await Order.countDocuments({ user: userId })
+
+      // Fetch user wishlist count
+      const user = await User.findById(userId).select('wishlist')
+      const wishlistCount = user?.wishlist?.length || 0
+
+      // Fetch user reviews count
+      const reviewsCount = await Review.countDocuments({ user: userId })
+
+      return response.json({
+        orders: ordersCount,
+        wishlist: wishlistCount,
+        reviews: reviewsCount,
+        vouchers: 0, // Implement later when vouchers feature is ready
+      })
+    } catch (error) {
+      return response.status(500).json({
+        message: 'Lỗi server',
+        error: error.message,
+      })
+    }
+  }
+
+  /**
+   * Change password
+   */
+  async changePassword({ request, response }: HttpContext) {
+    try {
+      const userId = (request as any).user.id
+      const { currentPassword, newPassword } = request.only(['currentPassword', 'newPassword'])
+
+      // Validation
+      if (!currentPassword || !newPassword) {
+        return response.status(400).json({
+          message: 'Mật khẩu hiện tại và mật khẩu mới là bắt buộc',
+        })
+      }
+
+      if (newPassword.length < 6) {
+        return response.status(400).json({
+          message: 'Mật khẩu mới phải có ít nhất 6 ký tự',
+        })
+      }
+
+      const user = await User.findById(userId)
+      if (!user) {
+        return response.status(404).json({
+          message: 'Người dùng không tồn tại',
+        })
+      }
+
+      // Verify current password
+      const isMatch = await user.comparePassword(currentPassword)
+      if (!isMatch) {
+        return response.status(400).json({
+          message: 'Mật khẩu hiện tại không đúng',
+        })
+      }
+
+      // Update password
+      user.password = newPassword
+      await user.save()
+
+      return response.json({
+        message: 'Đổi mật khẩu thành công',
+      })
+    } catch (error) {
+      return response.status(500).json({
+        message: 'Lỗi server',
+        error: error.message,
+      })
+    }
   }
 
   /**

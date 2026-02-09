@@ -9,12 +9,10 @@ export default class AttributesController {
   async index({ request, response, inertia }: HttpContext) {
     try {
       const isInertia = request.header('X-Inertia')
-      
+
       // Inertia request - render page
       if (isInertia) {
-        const attributes = await Attribute.find({})
-          .sort({ order: 1, name: 1 })
-          .lean()
+        const attributes = await Attribute.find({}).sort({ order: 1, name: 1 }).lean()
 
         const serializedAttributes = attributes.map((attr) => ({
           ...attr,
@@ -174,7 +172,7 @@ export default class AttributesController {
   async store({ request, response, session }: HttpContext) {
     try {
       const isInertia = request.header('X-Inertia')
-      
+
       const data = request.only([
         'name',
         'type',
@@ -264,7 +262,7 @@ export default class AttributesController {
   async update({ params, request, response, session }: HttpContext) {
     try {
       const isInertia = request.header('X-Inertia')
-      
+
       if (!mongoose.Types.ObjectId.isValid(params.id)) {
         if (isInertia) {
           session.flash('error', 'ID thuộc tính không hợp lệ')
@@ -362,7 +360,7 @@ export default class AttributesController {
   async destroy({ params, request, response, session }: HttpContext) {
     try {
       const isInertia = request.header('X-Inertia')
-      
+
       if (!mongoose.Types.ObjectId.isValid(params.id)) {
         if (isInertia) {
           session.flash('error', 'ID thuộc tính không hợp lệ')
@@ -412,7 +410,7 @@ export default class AttributesController {
     } catch (error) {
       console.error('Delete attribute error:', error)
       const isInertia = request.header('X-Inertia')
-      
+
       if (isInertia) {
         session.flash('error', 'Lỗi server')
         return response.redirect('/admin/attributes')
