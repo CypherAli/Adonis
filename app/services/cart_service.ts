@@ -52,18 +52,21 @@ export class CartService {
           const product = item.product
           const variant = product.variants?.find((v: any) => v.sku === item.variantSku)
           
+          // Get price from item, variant, or product basePrice (fallback for old cart items)
+          const itemPrice = item.price || variant?.price || product.basePrice || 0
+          
           return {
             _id: item._id,
             product: item.product,
             name: product.name,
             brand: product.brand,
-            price: item.price,
+            price: itemPrice,
             quantity: item.quantity,
-            variantSku: item.variantSku,
-            stock: variant?.stock || 0,
+            variantSku: item.variantSku || 'default',
+            stock: variant?.stock || product.stock || 99,
             imageUrl: product.images?.[0] || null,
             seller: item.seller,
-            sellerName: item.sellerName || item.seller?.shopName || item.seller?.username,
+            sellerName: item.sellerName || item.seller?.shopName || item.seller?.username || 'Unknown Shop',
             size: variant?.specifications?.size,
             color: variant?.specifications?.color,
           }
@@ -163,16 +166,21 @@ export class CartService {
             { new: true }
           )
         } else {
-          // Add new item
+          // Add new item - calculate price from variant or base price
+          const itemPrice = variant ? (variant.price || product.basePrice) : product.basePrice
+          const sellerName = (product.createdBy as any)?.shopName || (product.createdBy as any)?.username || 'Unknown Shop'
+          
           await Cart.findOneAndUpdate(
             { user: userId },
             {
               $push: {
                 items: {
                   product: productId,
-                  variantSku: selectedVariantSku,
+                  variantSku: selectedVariantSku || 'default',
                   quantity,
+                  price: itemPrice,
                   seller: product.createdBy?._id || null,
+                  sellerName: sellerName,
                 },
               },
             },
@@ -180,15 +188,20 @@ export class CartService {
           )
         }
       } else {
-        // Create new cart with item
+        // Create new cart with item - calculate price from variant or base price
+        const itemPrice = variant ? (variant.price || product.basePrice) : product.basePrice
+        const sellerName = (product.createdBy as any)?.shopName || (product.createdBy as any)?.username || 'Unknown Shop'
+        
         await Cart.create({
           user: userId,
           items: [
             {
               product: productId,
-              variantSku: selectedVariantSku,
+              variantSku: selectedVariantSku || 'default',
               quantity,
+              price: itemPrice,
               seller: product.createdBy?._id || null,
+              sellerName: sellerName,
             },
           ],
         })

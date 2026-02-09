@@ -28,6 +28,7 @@ const CartItemSchema = new Schema<CartItem>({
   variantSku: {
     type: String,
     required: true,
+    default: 'default',
   },
   seller: {
     type: Schema.Types.ObjectId,
@@ -43,6 +44,7 @@ const CartItemSchema = new Schema<CartItem>({
   price: {
     type: Number,
     required: true,
+    default: 0,
   },
   addedAt: {
     type: Date,

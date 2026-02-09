@@ -74,19 +74,69 @@ export default function CartPage() {
   // Initialize selected items
   useEffect(() => {
     if (cartItems && cartItems.length > 0) {
-      setSelectedItems(cartItems.map((item: any) => item._id))
+      setSelectedItems(cartItems.map((item: any) => item._id || item.id))
     }
   }, [cartItems])
 
+  // Normalize cart items to handle both API format and guest cart format
+  const normalizeCartItems = (): CartItem[] => {
+    if (!cartItems || cartItems.length === 0) return []
+    
+    return cartItems.map((item: any) => {
+      // Check if data is from API (flat structure) or guest cart (nested structure)
+      const isGuestCart = item.product && typeof item.product === 'object' && item.product.name
+      
+      if (isGuestCart) {
+        // Guest cart format: { product: {...}, quantity, ... }
+        const product = item.product
+        return {
+          _id: item.id || item._id || `guest-${Date.now()}`,
+          id: item.id,
+          product: product,
+          seller: product.seller || product.createdBy,
+          sellerName: product.sellerName || product.seller?.shopName || 'Unknown Shop',
+          name: product.name || 'Unknown Product',
+          brand: product.brand || '',
+          price: product.price || product.basePrice || 0,
+          quantity: item.quantity || 1,
+          stock: product.stock || 99,
+          imageUrl: product.imageUrl || product.images?.[0] || '/images/placeholder-product.svg',
+          discountedPrice: product.discountedPrice,
+          size: item.size || product.selectedSize,
+          color: item.color || product.selectedColor,
+        }
+      } else {
+        // API format: flat structure { name, price, quantity, ... }
+        return {
+          _id: item._id,
+          id: item.id,
+          product: item.product,
+          seller: item.seller,
+          sellerName: item.sellerName || item.seller?.shopName || item.seller?.username || 'Unknown Shop',
+          name: item.name || item.product?.name || 'Unknown Product',
+          brand: item.brand || item.product?.brand || '',
+          price: item.price || item.product?.basePrice || 0,
+          quantity: item.quantity || 1,
+          stock: item.stock || 99,
+          imageUrl: item.imageUrl || item.product?.images?.[0] || '/images/placeholder-product.svg',
+          discountedPrice: item.discountedPrice,
+          size: item.size,
+          color: item.color,
+        }
+      }
+    })
+  }
+
   // Group cart items by seller
   const groupItemsBySeller = (): SellerGroup[] => {
-    if (!cartItems || cartItems.length === 0) return []
+    const normalizedItems = normalizeCartItems()
+    if (normalizedItems.length === 0) return []
     
     const grouped: { [key: string]: SellerGroup } = {}
     
-    cartItems.forEach((item: any) => {
+    normalizedItems.forEach((item: CartItem) => {
       const sellerId = item.seller?._id || item.seller || 'unknown'
-      const sellerName = item.sellerName || item.seller?.shopName || item.seller?.username || 'Unknown Shop'
+      const sellerName = item.sellerName || 'Unknown Shop'
 
       if (!grouped[sellerId]) {
         grouped[sellerId] = {
@@ -95,7 +145,7 @@ export default function CartPage() {
           items: [],
         }
       }
-      grouped[sellerId].items.push(item as CartItem)
+      grouped[sellerId].items.push(item)
     })
 
     return Object.values(grouped)
@@ -110,24 +160,26 @@ export default function CartPage() {
 
   // Select all items
   const toggleSelectAll = () => {
-    if (!cartItems || cartItems.length === 0) return
+    const normalizedItems = normalizeCartItems()
+    if (normalizedItems.length === 0) return
     
-    if (selectedItems.length === cartItems.length) {
+    if (selectedItems.length === normalizedItems.length) {
       setSelectedItems([])
     } else {
-      setSelectedItems(cartItems.map((item: any) => item._id))
+      setSelectedItems(normalizedItems.map((item) => item._id))
     }
   }
 
   // Calculate selected items total
   const getSelectedTotal = () => {
-    if (!cartItems) return 0
+    const normalizedItems = normalizeCartItems()
+    if (normalizedItems.length === 0) return 0
     
-    return cartItems
-      .filter((item: any) => selectedItems.includes(item._id))
-      .reduce((total: number, item: any) => {
-        const price = parseFloat(item.price) || 0
-        const quantity = parseInt(item.quantity) || 0
+    return normalizedItems
+      .filter((item) => selectedItems.includes(item._id))
+      .reduce((total: number, item) => {
+        const price = parseFloat(String(item.price)) || 0
+        const quantity = parseInt(String(item.quantity)) || 0
         return total + price * quantity
       }, 0)
   }
@@ -256,7 +308,7 @@ export default function CartPage() {
 
       <div className="cart-header">
         <h1>Giỏ Hàng Của Bạn</h1>
-        <div className="cart-count">{cartItems?.length || 0} sản phẩm</div>
+        <div className="cart-count">{normalizeCartItems().length} sản phẩm</div>
       </div>
 
       <div className="cart-layout">
@@ -267,11 +319,11 @@ export default function CartPage() {
             <label className="checkbox-container">
               <input
                 type="checkbox"
-                checked={cartItems && selectedItems.length === cartItems.length && cartItems.length > 0}
+                checked={normalizeCartItems().length > 0 && selectedItems.length === normalizeCartItems().length}
                 onChange={toggleSelectAll}
               />
               <span className="checkmark"></span>
-              <span className="label-text">Chọn tất cả ({cartItems?.length || 0})</span>
+              <span className="label-text">Chọn tất cả ({normalizeCartItems().length})</span>
             </label>
             {selectedItems.length > 0 && (
               <button
