@@ -38,4 +38,15 @@ export default await Env.create(new URL('../', import.meta.url), {
   |----------------------------------------------------------
   */
   JWT_SECRET: Env.schema.string(),
+
+  /*
+  |----------------------------------------------------------
+  | Variables for Payment Configuration
+  |----------------------------------------------------------
+  */
+  PAYMENT_WEBHOOK_SECRET: Env.schema.string.optional(),
+  PAYMENT_TIMEOUT_MINUTES: Env.schema.number.optional(),
+  BANK_CODE: Env.schema.string.optional(),
+  BANK_ACCOUNT_NUMBER: Env.schema.string.optional(),
+  BANK_ACCOUNT_NAME: Env.schema.string.optional(),
 })
