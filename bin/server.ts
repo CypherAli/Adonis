@@ -41,6 +41,10 @@ new Ignitor(APP_ROOT, { importer: IMPORTER })
     app.starting(async () => {
       // Import API routes
       await import('#start/api_routes')
+      
+      // Start Payment Scheduler - Tự động hủy đơn chưa thanh toán
+      const { startPaymentScheduler } = await import('#services/payment_scheduler')
+      startPaymentScheduler(1) // Check mỗi 1 phút
     })
 
     app.listen('SIGTERM', () => app.terminate())

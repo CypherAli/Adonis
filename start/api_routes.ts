@@ -25,6 +25,7 @@ const CategoriesController = () => import('#controllers/categories_controller')
 const BrandsController = () => import('#controllers/brands_controller')
 const AttributesController = () => import('#controllers/attributes_controller')
 const SettingsController = () => import('#controllers/settings_controller')
+const PaymentController = () => import('#controllers/payment_controller')
 
 // API routes with /api prefix
 router
@@ -68,6 +69,8 @@ router
         router.get('/', [OrdersController, 'index']) // Get user's orders
         router.post('/', [OrdersController, 'store']) // Create new order
         router.get('/:id', [OrdersController, 'show']) // Get order detail
+        router.get('/:id/payment-info', [PaymentController, 'getPaymentInfo']) // Get payment info (QR, bank)
+        router.get('/:id/payment-status', [PaymentController, 'checkPaymentStatus']) // Check payment status
         router.put('/:id/status', [OrdersController, 'updateStatus']) // Update order status (admin/partner)
         router.put('/:id/cancel', [OrdersController, 'cancel']) // Cancel order
       })
@@ -173,6 +176,10 @@ router
     // Public settings (site info, social links, etc.)
     router.get('/settings/public', [SettingsController, 'getPublic'])
 
+    // ==================== PAYMENT WEBHOOK (PUBLIC) ====================
+    // Endpoint cho ngân hàng/payment gateway gọi về
+    router.post('/webhook/payment', [PaymentController, 'webhook'])
+
     // ==================== ADMIN ROUTES ====================
     router
       .group(() => {
@@ -194,6 +201,10 @@ router
           AdminController,
           'toggleProductFeatured',
         ])
+
+        // Payment Management
+        router.post('/orders/:id/confirm-payment', [PaymentController, 'confirmPaymentManually'])
+        router.post('/orders/cancel-expired', [PaymentController, 'cancelExpiredOrders'])
 
         // Orders Management
         router.get('/orders', [AdminController, 'getOrders'])
