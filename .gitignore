@@ -1,32 +1,37 @@
-# Dependencies and AdonisJS build
+# Dependencies
 node_modules
-build
-tmp
+npm-debug.log
+yarn-error.log
 
-# Secrets
+# Environment files - NEVER commit these
 .env
 .env.local
 .env.production.local
 .env.development.local
+**/.env
+**/.env.local
 
-# Frontend assets compiled code
-public/assets
+# Build outputs
+build
+dist
+.next
+tmp
 
-# Build tools specific
-npm-debug.log
-yarn-error.log
-
-# Log files
+# Logs
 *.log
 server-error.log
 
-# Editors specific
+# Editors
 .fleet
 .idea
 .vscode
 
-# Platform specific
+# OS
 .DS_Store
 
-# Old backoffice folder (not used - admin uses Inertia.js)
-backoffice/
+# Upload folders
+uploads/
+public/uploads/
+
+# Test coverage
+coverage
