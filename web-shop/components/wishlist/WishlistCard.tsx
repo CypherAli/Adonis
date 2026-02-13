@@ -38,10 +38,6 @@ const WishlistCard = memo(function WishlistCard({
           alt={product.name}
           className="wishlist-image"
           loading="lazy"
-          onError={(e) => {
-            const target = e.target as HTMLImageElement
-            target.src = '/images/placeholder-product.svg'
-          }}
         />
         {stock <= 0 && (
           <div className="out-of-stock-overlay">
