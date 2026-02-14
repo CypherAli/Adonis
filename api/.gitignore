@@ -1,0 +1,15 @@
+# Dependencies
+node_modules
+npm-debug.log
+
+# Environment files - NEVER commit
+.env
+
+# Build
+dist
+
+# Logs
+*.log
+
+# Uploads
+uploads/

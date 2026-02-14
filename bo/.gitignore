@@ -1,0 +1,17 @@
+# Dependencies
+node_modules
+npm-debug.log
+
+# Environment files - NEVER commit
+.env
+
+# Build
+build
+tmp
+
+# Logs
+*.log
+
+# Public assets
+public/assets
+public/uploads/
