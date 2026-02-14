@@ -14,7 +14,7 @@ export default class AttributesController {
       if (isInertia) {
         const attributes = await Attribute.find({}).sort({ order: 1, name: 1 }).lean()
 
-        const serializedAttributes = attributes.map((attr) => ({
+        const serializedAttributes = attributes.map((attr: any) => ({
           ...attr,
           id: attr._id.toString(),
           _id: attr._id.toString(),
@@ -84,7 +84,7 @@ export default class AttributesController {
         totalPages: Math.ceil(total / limitNum),
         totalAttributes: total,
       })
-    } catch (error) {
+    } catch (error: any) {
       console.error('Get attributes error:', error)
       return response.status(500).json({
         message: 'Lỗi server',
@@ -106,7 +106,7 @@ export default class AttributesController {
         .lean()
 
       return response.json({ attributes })
-    } catch (error) {
+    } catch (error: any) {
       console.error('Get filterable attributes error:', error)
       return response.status(500).json({
         message: 'Lỗi server',
@@ -128,7 +128,7 @@ export default class AttributesController {
         .lean()
 
       return response.json({ attributes })
-    } catch (error) {
+    } catch (error: any) {
       console.error('Get variant attributes error:', error)
       return response.status(500).json({
         message: 'Lỗi server',
@@ -157,7 +157,7 @@ export default class AttributesController {
       }
 
       return response.json({ attribute })
-    } catch (error) {
+    } catch (error: any) {
       console.error('Get attribute error:', error)
       return response.status(500).json({
         message: 'Lỗi server',
@@ -243,7 +243,7 @@ export default class AttributesController {
 
       session.flash('success', 'Tạo thuộc tính thành công')
       return response.redirect('/admin/attributes')
-    } catch (error) {
+    } catch (error: any) {
       console.error('Create attribute error:', error)
 
       if (error.code === 11000) {
@@ -328,7 +328,7 @@ export default class AttributesController {
         message: 'Cập nhật thuộc tính thành công',
         attribute,
       })
-    } catch (error) {
+    } catch (error: any) {
       console.error('Update attribute error:', error)
       const isInertia = request.header('X-Inertia')
 
@@ -407,7 +407,7 @@ export default class AttributesController {
       return response.json({
         message: 'Xóa thuộc tính thành công',
       })
-    } catch (error) {
+    } catch (error: any) {
       console.error('Delete attribute error:', error)
       const isInertia = request.header('X-Inertia')
 
@@ -449,7 +449,7 @@ export default class AttributesController {
         message: attribute.isActive ? 'Đã kích hoạt thuộc tính' : 'Đã vô hiệu hóa thuộc tính',
         attribute,
       })
-    } catch (error) {
+    } catch (error: any) {
       console.error('Toggle attribute active error:', error)
       return response.status(500).json({
         message: 'Lỗi server',
@@ -498,7 +498,7 @@ export default class AttributesController {
         message: 'Thêm giá trị thành công',
         attribute,
       })
-    } catch (error) {
+    } catch (error: any) {
       console.error('Add attribute value error:', error)
       return response.status(500).json({
         message: 'Lỗi server',
@@ -541,7 +541,7 @@ export default class AttributesController {
         message: 'Xóa giá trị thành công',
         attribute,
       })
-    } catch (error) {
+    } catch (error: any) {
       console.error('Remove attribute value error:', error)
       return response.status(500).json({
         message: 'Lỗi server',

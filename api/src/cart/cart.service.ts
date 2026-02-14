@@ -99,7 +99,13 @@ export class CartService {
 
     // Validate stock
     const product = await this.productModel.findById(productId);
+    if (!product) {
+      throw new NotFoundException('Product not found');
+    }
     const variant = product.variants.find(v => v.sku === variantSku);
+    if (!variant) {
+      throw new NotFoundException('Variant not found');
+    }
     if (variant.stock < updateDto.quantity) {
       throw new BadRequestException('Insufficient stock');
     }

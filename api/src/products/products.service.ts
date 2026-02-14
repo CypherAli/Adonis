@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import { Model, FilterQuery } from 'mongoose';
+import { Model } from 'mongoose';
 import { Product, ProductDocument } from './schemas/product.schema';
 import { GetProductsDto } from './dto/get-products.dto';
 
@@ -28,7 +28,7 @@ export class ProductsService {
     } = query;
 
     // Build filter
-    const filter: FilterQuery<ProductDocument> = { isActive: true };
+    const filter: Record<string, any> = { isActive: true };
 
     // Text search
     if (search) {

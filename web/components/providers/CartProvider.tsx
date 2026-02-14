@@ -35,39 +35,45 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
   const fetchCart = useCallback(async (token: string) => {
     if (!token) {
       console.warn('No token provided for fetchCart')
+      setCartItems([])
       return
     }
     
     try {
       setLoading(true)
-      console.log('Fetching cart with token:', token.substring(0, 20) + '...')
       const response = await api.get('/api/cart', {
         headers: {
           Authorization: `Bearer ${token}`
         }
       })
-      console.log('Cart response:', response.status, response.data)
       // Backend trả về { success: true, data: { items: [...] } }
       const cartData = response.data?.data || response.data
       setCartItems(cartData?.items || [])
-    } catch (error) {
-      console.error('Error fetching cart:', error)
-      setCartItems([])
+    } catch (error: any) {
+      // Nếu 401 Unauthorized hoặc chưa login thì dùng guest cart
+      if (error?.response?.status === 401) {
+        const savedCart = localStorage.getItem('guestCart')
+        if (savedCart) {
+          setCartItems(JSON.parse(savedCart))
+        } else {
+          setCartItems([])
+        }
+      } else {
+        console.error('Error fetching cart:', error)
+        setCartItems([])
+      }
     } finally {
       setLoading(false)
     }
   }, [])
 
   useEffect(() => {
-    console.log('CartProvider - Session status:', status, 'accessToken exists:', !!session?.accessToken)
-    
     if (status === 'loading') return
     
     if (status === 'authenticated' && session?.accessToken) {
       fetchCart(session.accessToken)
-    } else if (status === 'authenticated' && !session?.accessToken) {
-      console.warn('Authenticated but no accessToken in session')
-    } else if (status === 'unauthenticated') {
+    } else {
+      // Unauthenticated or no token - use guest cart
       const savedCart = localStorage.getItem('guestCart')
       if (savedCart) {
         setCartItems(JSON.parse(savedCart))

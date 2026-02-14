@@ -36,18 +36,34 @@ export const WishlistProvider = ({ children }: { children: ReactNode }) => {
 
   // Fetch wishlist from server
   const fetchWishlist = useCallback(async (token: string) => {
+    if (!token) {
+      setWishlistItems([])
+      return
+    }
+    
     try {
       const response = await api.get('/api/user/wishlist', {
         headers: { Authorization: `Bearer ${token}` }
       })
       const data = response.data || []
-      const items = data.map((item: any, index: number) => ({
-        id: String(item.product?._id || item._id || `item-${index}`),
-        product: item.product || item,
-      }))
-      setWishlistItems(items)
-    } catch (error) {
-      console.error('Error fetching wishlist:', error)
+      // Kiểm tra data có phải array không
+      if (Array.isArray(data)) {
+        const items = data.map((item: any, index: number) => ({
+          id: String(item.product?._id || item._id || `item-${index}`),
+          product: item.product || item,
+        }))
+        setWishlistItems(items)
+      } else {
+        setWishlistItems([])
+      }
+    } catch (error: any) {
+      // Nếu 401 hoặc 404 thì chỉ set empty, không log error
+      if (error?.response?.status === 401 || error?.response?.status === 404) {
+        setWishlistItems([])
+      } else {
+        console.error('Error fetching wishlist:', error)
+        setWishlistItems([])
+      }
     }
   }, [])
 

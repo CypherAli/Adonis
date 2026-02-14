@@ -14,12 +14,14 @@ import { JwtStrategy } from './strategies/jwt.strategy';
     PassportModule.register({ defaultStrategy: 'jwt' }),
     JwtModule.registerAsync({
       imports: [ConfigModule],
-      useFactory: async (configService: ConfigService) => ({
-        secret: configService.get<string>('JWT_SECRET'),
-        signOptions: {
-          expiresIn: configService.get<string>('JWT_EXPIRES_IN') || '7d',
-        },
-      }),
+      useFactory: async (configService: ConfigService) => {
+        return {
+          secret: configService.get<string>('JWT_SECRET') || 'default-secret',
+          signOptions: {
+            expiresIn: configService.get('JWT_EXPIRES_IN') || '7d',
+          },
+        };
+      },
       inject: [ConfigService],
     }),
     MongooseModule.forFeature([{ name: User.name, schema: UserSchema }]),

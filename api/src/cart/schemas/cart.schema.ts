@@ -59,5 +59,4 @@ CartSchema.pre('save', function (next) {
     (sum: number, item: any) => sum + item.price * item.quantity,
     0,
   );
-  next();
 });

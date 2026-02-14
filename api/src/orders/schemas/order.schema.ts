@@ -142,5 +142,4 @@ OrderSchema.pre('save', function (next) {
     // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
     order.orderNumber = `ORD${Date.now()}${Math.floor(Math.random() * 1000)}`;
   }
-  next();
 });
