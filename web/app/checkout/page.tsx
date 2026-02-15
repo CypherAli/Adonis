@@ -94,16 +94,14 @@ export default function CheckoutPage() {
         notes,
       }
 
-      // Create order
+      // Create order - backend auto-clears cart & decreases stock
       await api.post('/api/orders', orderData)
 
-      // ✅ Clear cart ở BE (theo yêu cầu)
-      const productIds = cartItems.map((item: any) => item.product?._id || item.product)
-      await api.post('/api/cart/clear', { productIds })
+      // Refresh frontend cart state (backend already cleared it)
+      await clearCart()
 
       setSuccess(true)
 
-      // Redirect to orders page
       setTimeout(() => {
         router.push('/user/orders')
       }, 2000)

@@ -1,4 +1,5 @@
 import type { Metadata } from 'next'
+import { Suspense } from 'react'
 import HeroBanner from '@/components/common/HeroBanner'
 import BestSellers from '@/components/product/BestSellers'
 import ProductGrid from '@/components/product/ProductGrid'
@@ -11,37 +12,52 @@ export const metadata: Metadata = {
   keywords: 'giày thể thao, sneakers, giày nam, giày nữ, Nike, Adidas',
 }
 
-async function getProducts() {
+async function getProducts(page = 1, search?: string, brand?: string, category?: string) {
   try {
     const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3333'
-    const res = await fetch(`${API_URL}/api/products?limit=20`, {
-      next: { revalidate: 60 }, // Revalidate every 60 seconds
+    const params = new URLSearchParams()
+    params.set('page', String(page))
+    params.set('limit', '20')
+    if (search) params.set('search', search)
+    if (brand) params.set('brand', brand)
+    if (category) params.set('category', category)
+
+    const res = await fetch(`${API_URL}/api/products?${params.toString()}`, {
+      next: { revalidate: 60 },
     })
 
     if (!res.ok) {
       console.error(`API error: ${res.status} ${res.statusText}`)
-      return { products: [], total: 0 }
+      return { products: [], total: 0, page: 1, totalPages: 1 }
     }
 
     const data = await res.json()
     const mappedProducts = mapProducts(data.products || [])
     return {
       products: mappedProducts,
-      total: data.totalProducts || 0,
+      total: data.pagination?.total || data.totalProducts || 0,
+      page: data.pagination?.page || 1,
+      totalPages: data.pagination?.totalPages || 1,
     }
   } catch (error) {
     console.error('Error fetching products:', error)
-    return { products: [], total: 0 }
+    return { products: [], total: 0, page: 1, totalPages: 1 }
   }
 }
 
 export default async function ShopPage({
   searchParams,
 }: {
-  searchParams: Promise<{ search?: string; brand?: string; category?: string }>
+  searchParams: Promise<{ search?: string; brand?: string; category?: string; page?: string }>
 }) {
   const resolvedSearchParams = await searchParams
-  const { products, total } = await getProducts()
+  const page = Number(resolvedSearchParams.page) || 1
+  const { products, total, totalPages } = await getProducts(
+    page,
+    resolvedSearchParams.search,
+    resolvedSearchParams.brand,
+    resolvedSearchParams.category,
+  )
 
   return (
     <main className="min-h-screen" style={{ background: 'var(--bg-body)' }}>
@@ -54,7 +70,18 @@ export default async function ShopPage({
           <p className="text-gray-600 mt-2">{total} sản phẩm có sẵn</p>
         </div>
 
-        <ProductGrid initialProducts={products} />
+        <Suspense fallback={
+          <div className="flex justify-center py-12">
+            <div className="inline-block animate-spin rounded-full h-10 w-10 border-4 border-blue-600 border-t-transparent"></div>
+          </div>
+        }>
+          <ProductGrid
+            initialProducts={products}
+            initialTotal={total}
+            initialPage={page}
+            initialTotalPages={totalPages}
+          />
+        </Suspense>
       </section>
     </main>
   )
