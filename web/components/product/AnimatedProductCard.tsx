@@ -194,7 +194,10 @@ export default function AnimatedProductCard({
       
       await addToCart(normalizedProduct, 1)
     } catch (error) {
-      console.error('Failed to add to cart:', error)
+      // Silently handle expected errors (guest cart always works)
+      if (process.env.NODE_ENV === 'development') {
+        console.error('Failed to add to cart:', error)
+      }
     }
   }
 
@@ -203,8 +206,18 @@ export default function AnimatedProductCard({
       e.preventDefault()
       e.stopPropagation()
     }
+    
+    // Prevent action if already loading this product
     if (isProductLoading) return
-    await toggleWishlist(product)
+    
+    try {
+      await toggleWishlist(product)
+    } catch (error) {
+      // Errors are handled in provider
+      if (process.env.NODE_ENV === 'development') {
+        console.error('Toggle wishlist error:', error)
+      }
+    }
   }
 
   const imageSrc = product.image || (product.brand ? getBrandImage(product.brand) : getRandomShoeImage())

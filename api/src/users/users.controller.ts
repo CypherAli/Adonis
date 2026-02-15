@@ -38,4 +38,10 @@ export class UsersController {
   ) {
     return this.usersService.removeFromWishlist(user._id, productId);
   }
+
+  @Delete('wishlist/clear/all')
+  @UseGuards(JwtAuthGuard)
+  async clearWishlist(@CurrentUser() user: any) {
+    return this.usersService.clearWishlist(user._id);
+  }
 }

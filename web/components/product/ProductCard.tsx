@@ -56,23 +56,35 @@ export default function ProductCard({ product }: { product: Product }) {
       }, 1)
       alert('Đã thêm vào giỏ hàng!')
     } catch (error) {
-      console.error('Error adding to cart:', error)
+      // Silently handle expected errors (guest cart always works)
+      if (process.env.NODE_ENV === 'development') {
+        console.error('Error adding to cart:', error)
+      }
     }
   }
 
   const handleToggleWishlist = async (e: React.MouseEvent) => {
     e.preventDefault()
     e.stopPropagation()
+    
+    // Prevent action if already loading this product
     if (isProductLoading) return
     
-    await toggleWishlist({
-      _id: productId,
-      id: productId,
-      name: product.name,
-      price: product.price,
-      imageUrl: product.image,
-      brand: product.brand,
-    })
+    try {
+      await toggleWishlist({
+        _id: productId,
+        id: productId,
+        name: product.name,
+        price: product.price,
+        imageUrl: product.image,
+        brand: product.brand,
+      })
+    } catch (error) {
+      // Errors are handled in provider
+      if (process.env.NODE_ENV === 'development') {
+        console.error('Toggle wishlist error:', error)
+      }
+    }
   }
 
   return (
