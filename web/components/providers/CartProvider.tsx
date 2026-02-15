@@ -197,15 +197,25 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
   const clearCart = useCallback(async () => {
     try {
       setLoading(true)
-      
-      if (session?.user) {
-        await api.delete('/api/cart/clear')
+
+      if (session?.user && session.accessToken) {
+        // Refresh cart from server (it may already be cleared by order creation)
+        try {
+          const response = await api.get('/api/cart', {
+            headers: { Authorization: `Bearer ${session.accessToken}` }
+          })
+          const cartData = response.data?.data || response.data
+          setCartItems(cartData?.items || [])
+        } catch {
+          setCartItems([])
+        }
       } else {
         localStorage.removeItem('guestCart')
+        setCartItems([])
       }
-      setCartItems([])
     } catch (error) {
       console.error('Error clearing cart:', error)
+      setCartItems([])
     } finally {
       setLoading(false)
     }

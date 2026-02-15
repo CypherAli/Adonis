@@ -63,37 +63,37 @@ export default function Footer() {
             </h4>
             <ul className="space-y-2">
               <li>
-                <Link href="/guide/shopping" className="text-sm hover:text-orange-500 transition-colors flex items-center gap-2">
+                <Link href="/huong-dan-mua-hang" className="text-sm hover:text-orange-500 transition-colors flex items-center gap-2">
                   <span className="text-orange-500">▸</span>
                   Hướng dẫn mua hàng
                 </Link>
               </li>
               <li>
-                <Link href="/guide/payment" className="text-sm hover:text-orange-500 transition-colors flex items-center gap-2">
+                <Link href="/huong-dan-thanh-toan" className="text-sm hover:text-orange-500 transition-colors flex items-center gap-2">
                   <span className="text-orange-500">▸</span>
                   Hướng dẫn thanh toán
                 </Link>
               </li>
               <li>
-                <Link href="/policies/warranty" className="text-sm hover:text-orange-500 transition-colors flex items-center gap-2">
+                <Link href="/chinh-sach-bao-hanh" className="text-sm hover:text-orange-500 transition-colors flex items-center gap-2">
                   <span className="text-orange-500">▸</span>
                   Chính sách bảo hành
                 </Link>
               </li>
               <li>
-                <Link href="/policies/return" className="text-sm hover:text-orange-500 transition-colors flex items-center gap-2">
+                <Link href="/chinh-sach-doi-tra" className="text-sm hover:text-orange-500 transition-colors flex items-center gap-2">
                   <span className="text-orange-500">▸</span>
                   Chính sách đổi trả
                 </Link>
               </li>
               <li>
-                <Link href="/policies/shipping" className="text-sm hover:text-orange-500 transition-colors flex items-center gap-2">
+                <Link href="/chinh-sach-van-chuyen" className="text-sm hover:text-orange-500 transition-colors flex items-center gap-2">
                   <span className="text-orange-500">▸</span>
                   Chính sách vận chuyển
                 </Link>
               </li>
               <li>
-                <Link href="/guide/installment" className="text-sm hover:text-orange-500 transition-colors flex items-center gap-2">
+                <Link href="/tra-gop" className="text-sm hover:text-orange-500 transition-colors flex items-center gap-2">
                   <span className="text-orange-500">▸</span>
                   Hướng dẫn trả góp 0%
                 </Link>
@@ -108,7 +108,7 @@ export default function Footer() {
             </h4>
             <ul className="space-y-2">
               <li>
-                <Link href="/about" className="text-sm hover:text-orange-500 transition-colors flex items-center gap-2">
+                <Link href="/gioi-thieu" className="text-sm hover:text-orange-500 transition-colors flex items-center gap-2">
                   <span className="text-orange-500">▸</span>
                   Giới thiệu công ty
                 </Link>
@@ -120,25 +120,25 @@ export default function Footer() {
                 </Link>
               </li>
               <li>
-                <Link href="/careers" className="text-sm hover:text-orange-500 transition-colors flex items-center gap-2">
+                <Link href="/tuyen-dung" className="text-sm hover:text-orange-500 transition-colors flex items-center gap-2">
                   <span className="text-orange-500">▸</span>
                   Tuyển dụng
                 </Link>
               </li>
               <li>
-                <Link href="/news" className="text-sm hover:text-orange-500 transition-colors flex items-center gap-2">
+                <Link href="/tin-tuc" className="text-sm hover:text-orange-500 transition-colors flex items-center gap-2">
                   <span className="text-orange-500">▸</span>
                   Tin tức & Sự kiện
                 </Link>
               </li>
               <li>
-                <Link href="/stores" className="text-sm hover:text-orange-500 transition-colors flex items-center gap-2">
+                <Link href="/he-thong-cua-hang" className="text-sm hover:text-orange-500 transition-colors flex items-center gap-2">
                   <span className="text-orange-500">▸</span>
                   Hệ thống cửa hàng
                 </Link>
               </li>
               <li>
-                <Link href="/terms" className="text-sm hover:text-orange-500 transition-colors flex items-center gap-2">
+                <Link href="/dieu-khoan" className="text-sm hover:text-orange-500 transition-colors flex items-center gap-2">
                   <span className="text-orange-500">▸</span>
                   Điều khoản sử dụng
                 </Link>
@@ -202,7 +202,7 @@ export default function Footer() {
           <div className="flex flex-col md:flex-row justify-between items-center gap-4">
             {/* Copyright */}
             <p className="text-sm text-gray-500">
-              © 2024 Shoe Store. All rights reserved.
+              © 2026 Shoe Store. All rights reserved.
             </p>
 
             {/* Social Icons */}
