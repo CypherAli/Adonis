@@ -19,8 +19,17 @@ const Header = () => {
   
   const user = session?.user
 
-  const handleLogout = () => {
-    signOut({ callbackUrl: '/auth/login' })
+  const handleLogout = async () => {
+    // Force clear all user data from localStorage
+    try {
+      localStorage.removeItem('guestCart')
+      localStorage.removeItem('guestWishlist')
+      localStorage.clear() // Clear everything to be safe
+    } catch (error) {
+      console.error('Error clearing localStorage:', error)
+    }
+    
+    await signOut({ callbackUrl: '/auth/login' })
   }
 
   const handleSearch = (e: React.FormEvent) => {

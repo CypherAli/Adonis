@@ -74,4 +74,16 @@ export class UsersService {
     await wishlist.save();
     return this.getWishlist(userId);
   }
+
+  async clearWishlist(userId: string) {
+    const wishlist = await this.wishlistModel.findOne({ userId: userId as any });
+    
+    if (!wishlist) {
+      throw new NotFoundException('Wishlist not found');
+    }
+
+    wishlist.items = [];
+    await wishlist.save();
+    return { message: 'Wishlist cleared successfully' };
+  }
 }

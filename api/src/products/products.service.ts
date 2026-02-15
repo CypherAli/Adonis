@@ -25,6 +25,7 @@ export class ProductsService {
       isFeatured,
       sortBy = 'createdAt',
       sortOrder = 'desc',
+      exclude,
     } = query;
 
     // Build filter
@@ -64,6 +65,11 @@ export class ProductsService {
     // Featured filter
     if (isFeatured !== undefined) {
       filter.isFeatured = isFeatured;
+    }
+
+    // Exclude filter
+    if (exclude) {
+      filter._id = { $ne: exclude };
     }
 
     // Pagination

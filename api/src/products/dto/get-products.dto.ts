@@ -68,4 +68,8 @@ export class GetProductsDto {
   @IsOptional()
   @IsString()
   sortOrder?: 'asc' | 'desc' = 'desc';
+
+  @IsOptional()
+  @IsString()
+  exclude?: string;
 }

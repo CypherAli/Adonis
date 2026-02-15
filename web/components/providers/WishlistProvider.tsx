@@ -57,11 +57,14 @@ export const WishlistProvider = ({ children }: { children: ReactNode }) => {
         setWishlistItems([])
       }
     } catch (error: any) {
-      // Nếu 401 hoặc 404 thì chỉ set empty, không log error
+      // Silently handle auth errors - expected when not logged in
       if (error?.response?.status === 401 || error?.response?.status === 404) {
         setWishlistItems([])
       } else {
-        console.error('Error fetching wishlist:', error)
+        // Only log unexpected errors
+        if (process.env.NODE_ENV === 'development') {
+          console.error('Error fetching wishlist:', error)
+        }
         setWishlistItems([])
       }
     }
@@ -72,12 +75,20 @@ export const WishlistProvider = ({ children }: { children: ReactNode }) => {
     if (status === 'loading') return
     
     if (status === 'authenticated' && session?.accessToken) {
-      fetchWishlist(session.accessToken)
+      // Add small delay to ensure session is fully hydrated
+      const timer = setTimeout(() => {
+        fetchWishlist(session.accessToken)
+      }, 100)
+      return () => clearTimeout(timer)
     } else if (status === 'unauthenticated') {
-      // Load from localStorage for guests
+      // Clear wishlist when logged out
+      setWishlistItems([])
+      // Load from localStorage for guests (if any)
       try {
         const saved = localStorage.getItem('guestWishlist')
-        if (saved) setWishlistItems(JSON.parse(saved))
+        if (saved) {
+          setWishlistItems(JSON.parse(saved))
+        }
       } catch {
         setWishlistItems([])
       }
@@ -105,24 +116,34 @@ export const WishlistProvider = ({ children }: { children: ReactNode }) => {
     
     // Optimistic update
     const newItem = { id: productId, product }
-    setWishlistItems(prev => [...prev, newItem])
+    setWishlistItems(prev => {
+      const updated = [...prev, newItem]
+      // Update localStorage immediately with new state
+      if (status !== 'authenticated') {
+        localStorage.setItem('guestWishlist', JSON.stringify(updated))
+      }
+      return updated
+    })
     setLoadingIds(prev => new Set(prev).add(productId))
     
-    if (session?.accessToken) {
-      setLoading(true)
+    // Only try API if authenticated
+    if (status === 'authenticated' && session?.accessToken) {
       try {
         await api.post('/api/user/wishlist', 
           { productId },
           { headers: { Authorization: `Bearer ${session.accessToken}` } }
         )
-        // Fetch fresh data after success
-        await fetchWishlist(session.accessToken)
-      } catch (error) {
-        // Revert optimistic update on error
-        console.error('Error adding to wishlist:', error)
-        setWishlistItems(prev => prev.filter(item => item.id !== productId))
+        // Don't fetch - trust optimistic update
+      } catch (error: any) {
+        // Only revert on genuine errors, not auth errors
+        if (error?.response?.status !== 401 && error?.response?.status !== 404) {
+          // Revert optimistic update on actual error
+          if (process.env.NODE_ENV === 'development') {
+            console.error('Error adding to wishlist:', error)
+          }
+          setWishlistItems(prev => prev.filter(item => item.id !== productId))
+        }
       } finally {
-        setLoading(false)
         setLoadingIds(prev => {
           const next = new Set(prev)
           next.delete(productId)
@@ -130,15 +151,14 @@ export const WishlistProvider = ({ children }: { children: ReactNode }) => {
         })
       }
     } else {
-      // Guest mode - already updated optimistically
-      localStorage.setItem('guestWishlist', JSON.stringify(wishlistItemsRef.current))
+      // Guest mode - clear loading state
       setLoadingIds(prev => {
         const next = new Set(prev)
         next.delete(productId)
         return next
       })
     }
-  }, [session?.accessToken, fetchWishlist, isInWishlist, loadingIds])
+  }, [status, session?.accessToken, isInWishlist, loadingIds])
 
   // Remove from wishlist with optimistic update
   const removeFromWishlist = useCallback(async (productId: string) => {
@@ -151,26 +171,36 @@ export const WishlistProvider = ({ children }: { children: ReactNode }) => {
     const oldItems = [...wishlistItemsRef.current]
     
     // Optimistic update
-    setWishlistItems(prev => prev.filter(item => {
-      const itemId = String(item.product?._id || item.product?.id || item.id)
-      return itemId !== pid
-    }))
+    setWishlistItems(prev => {
+      const updated = prev.filter(item => {
+        const itemId = String(item.product?._id || item.product?.id || item.id)
+        return itemId !== pid
+      })
+      // Update localStorage immediately with new state
+      if (status !== 'authenticated') {
+        localStorage.setItem('guestWishlist', JSON.stringify(updated))
+      }
+      return updated
+    })
     setLoadingIds(prev => new Set(prev).add(pid))
     
-    if (session?.accessToken) {
-      setLoading(true)
+    // Only try API if authenticated
+    if (status === 'authenticated' && session?.accessToken) {
       try {
         await api.delete(`/api/user/wishlist/${pid}`, {
           headers: { Authorization: `Bearer ${session.accessToken}` }
         })
-        // Fetch fresh data after success
-        await fetchWishlist(session.accessToken)
-      } catch (error) {
-        // Revert optimistic update on error
-        console.error('Error removing from wishlist:', error)
-        setWishlistItems(oldItems)
+        // Don't fetch - trust optimistic update
+      } catch (error: any) {
+        // Only revert on genuine errors, not auth errors
+        if (error?.response?.status !== 401 && error?.response?.status !== 404) {
+          // Revert optimistic update on actual error
+          if (process.env.NODE_ENV === 'development') {
+            console.error('Error removing from wishlist:', error)
+          }
+          setWishlistItems(oldItems)
+        }
       } finally {
-        setLoading(false)
         setLoadingIds(prev => {
           const next = new Set(prev)
           next.delete(pid)
@@ -178,15 +208,14 @@ export const WishlistProvider = ({ children }: { children: ReactNode }) => {
         })
       }
     } else {
-      // Guest mode
-      localStorage.setItem('guestWishlist', JSON.stringify(wishlistItemsRef.current))
+      // Guest mode - clear loading state
       setLoadingIds(prev => {
         const next = new Set(prev)
         next.delete(pid)
         return next
       })
     }
-  }, [session?.accessToken, fetchWishlist, loadingIds])
+  }, [status, session?.accessToken, loadingIds])
 
   // Toggle wishlist - uses ref for fresh check
   const toggleWishlist = useCallback(async (product: any) => {

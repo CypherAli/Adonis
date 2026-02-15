@@ -4,8 +4,9 @@ export class AddToCartDto {
   @IsString()
   productId: string;
 
+  @IsOptional()
   @IsString()
-  variantSku: string;
+  variantSku?: string;
 
   @IsNumber()
   @Min(1)

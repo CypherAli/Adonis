@@ -18,7 +18,7 @@ export const authConfig: NextAuthConfig = {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
-              email: credentials?.email,
+              username: credentials?.email,  // Backend expects "username" field (can be email or username)
               password: credentials?.password,
             }),
           })
