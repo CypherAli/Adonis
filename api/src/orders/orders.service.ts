@@ -57,6 +57,31 @@ export class OrdersService {
       } as any],
     });
 
+<<<<<<< Updated upstream
+=======
+    // Auto-clear ordered items from cart on backend
+    const productIds = items.map(item => item.productId);
+    try {
+      await this.cartService.clearCart(userId, productIds);
+    } catch {
+      // Cart clear failure should not fail the order
+      console.warn(`Failed to clear cart for user ${userId} after order ${order._id}`);
+    }
+
+    // Decrease stock for ordered variants
+    for (const item of items) {
+      const result = await this.productModel.updateOne(
+        { _id: item.productId, 'variants.sku': item.variantSku },
+        { $inc: { 'variants.$.stock': -item.quantity, soldCount: item.quantity } },
+      );
+      if (result.matchedCount === 0) {
+        console.warn(
+          `Stock decrement skipped: variant "${item.variantSku}" not found in product ${item.productId}`,
+        );
+      }
+    }
+
+>>>>>>> Stashed changes
     return order;
   }
 

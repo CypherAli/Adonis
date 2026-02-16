@@ -11,11 +11,41 @@ export const metadata: Metadata = {
   keywords: 'giày thể thao, sneakers, giày nam, giày nữ, Nike, Adidas',
 }
 
+<<<<<<< Updated upstream
 async function getProducts() {
   try {
     const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3333'
     const res = await fetch(`${API_URL}/api/products?limit=20`, {
       next: { revalidate: 60 }, // Revalidate every 60 seconds
+=======
+async function getProducts(
+  page = 1,
+  filters?: {
+    search?: string
+    brand?: string
+    category?: string
+    minPrice?: string
+    maxPrice?: string
+    sortBy?: string
+    sortOrder?: string
+  },
+) {
+  try {
+    const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3333'
+    const params = new URLSearchParams()
+    params.set('page', String(page))
+    params.set('limit', '20')
+    if (filters?.search) params.set('search', filters.search)
+    if (filters?.brand) params.set('brand', filters.brand)
+    if (filters?.category) params.set('category', filters.category)
+    if (filters?.minPrice) params.set('minPrice', filters.minPrice)
+    if (filters?.maxPrice) params.set('maxPrice', filters.maxPrice)
+    if (filters?.sortBy) params.set('sortBy', filters.sortBy)
+    if (filters?.sortOrder) params.set('sortOrder', filters.sortOrder)
+
+    const res = await fetch(`${API_URL}/api/products?${params.toString()}`, {
+      next: { revalidate: 60 },
+>>>>>>> Stashed changes
     })
 
     if (!res.ok) {
@@ -38,10 +68,35 @@ async function getProducts() {
 export default async function ShopPage({
   searchParams,
 }: {
+<<<<<<< Updated upstream
   searchParams: Promise<{ search?: string; brand?: string; category?: string }>
 }) {
   const resolvedSearchParams = await searchParams
   const { products, total } = await getProducts()
+=======
+  searchParams: Promise<{
+    search?: string
+    brand?: string
+    category?: string
+    page?: string
+    minPrice?: string
+    maxPrice?: string
+    sortBy?: string
+    sortOrder?: string
+  }>
+}) {
+  const resolvedSearchParams = await searchParams
+  const page = Number(resolvedSearchParams.page) || 1
+  const { products, total, totalPages } = await getProducts(page, {
+    search: resolvedSearchParams.search,
+    brand: resolvedSearchParams.brand,
+    category: resolvedSearchParams.category,
+    minPrice: resolvedSearchParams.minPrice,
+    maxPrice: resolvedSearchParams.maxPrice,
+    sortBy: resolvedSearchParams.sortBy,
+    sortOrder: resolvedSearchParams.sortOrder,
+  })
+>>>>>>> Stashed changes
 
   return (
     <main className="min-h-screen" style={{ background: 'var(--bg-body)' }}>

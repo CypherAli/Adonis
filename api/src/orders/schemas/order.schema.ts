@@ -3,6 +3,7 @@ import { Document, Types } from 'mongoose';
 
 export type OrderDocument = Order & Document;
 
+@Schema({ _id: false })
 class OrderItem {
   @Prop({ type: Types.ObjectId, ref: 'Product', required: true, index: true })
   product: Types.ObjectId;
@@ -30,6 +31,7 @@ class OrderItem {
   status: string;
 }
 
+@Schema({ _id: false })
 class StatusHistory {
   @Prop({ required: true })
   status: string;
@@ -134,7 +136,7 @@ export class Order {
 export const OrderSchema = SchemaFactory.createForClass(Order);
 
 // Generate order number before saving
-OrderSchema.pre('save', function (next) {
+OrderSchema.pre('save', function () {
   // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-this-alias
   const order = this as any;
   // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access

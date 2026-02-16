@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Param, UseGuards } from '@nestjs/common';
+import { Controller, Get, Post, Body, Param, UseGuards, BadRequestException, InternalServerErrorException } from '@nestjs/common';
 import { OrdersService } from './orders.service';
 import { CreateOrderDto } from './dto/create-order.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
@@ -14,7 +14,17 @@ export class OrdersController {
     @CurrentUser() user: any,
     @Body() createOrderDto: CreateOrderDto,
   ) {
-    return this.ordersService.createOrder(user._id, createOrderDto);
+    try {
+      return await this.ordersService.createOrder(user._id, createOrderDto);
+    } catch (error: any) {
+      console.error('❌ Order creation error:', error.message, error.stack);
+      if (error instanceof BadRequestException) {
+        throw error;
+      }
+      throw new InternalServerErrorException(
+        error.message || 'Failed to create order',
+      );
+    }
   }
 
   @Get()

@@ -66,6 +66,7 @@ export default function ProductGrid({ initialProducts }: ProductGridProps) {
   useEffect(() => {
     let result = [...products]
 
+<<<<<<< Updated upstream
     // Search filter
     if (filters.searchQuery) {
       const query = filters.searchQuery.toLowerCase()
@@ -73,8 +74,51 @@ export default function ProductGrid({ initialProducts }: ProductGridProps) {
         p.name.toLowerCase().includes(query) ||
         p.brand?.toLowerCase().includes(query)
       )
+=======
+      const params = new URLSearchParams()
+      params.set('page', String(page))
+      params.set('limit', String(PRODUCTS_PER_PAGE))
+
+      if (appliedFilters.searchQuery) params.set('search', appliedFilters.searchQuery)
+      if (appliedFilters.brands.length > 0) {
+        // Send all selected brands as comma-separated
+        params.set('brand', appliedFilters.brands.join(','))
+      }
+      if (appliedFilters.sizes.length > 0) params.set('size', appliedFilters.sizes.join(','))
+      if (appliedFilters.colors.length > 0) params.set('color', appliedFilters.colors.join(','))
+      if (appliedFilters.minPrice) params.set('minPrice', appliedFilters.minPrice)
+      if (appliedFilters.maxPrice) params.set('maxPrice', appliedFilters.maxPrice)
+      if (appliedFilters.inStock) params.set('inStock', 'true')
+
+      if (appliedFilters.sortBy === 'price_asc') {
+        params.set('sortBy', 'basePrice')
+        params.set('sortOrder', 'asc')
+      } else if (appliedFilters.sortBy === 'price_desc') {
+        params.set('sortBy', 'basePrice')
+        params.set('sortOrder', 'desc')
+      } else if (appliedFilters.sortBy === 'popularity') {
+        params.set('sortBy', 'soldCount')
+        params.set('sortOrder', 'desc')
+      }
+
+      const res = await fetch(`${API_URL}/api/products?${params.toString()}`)
+      if (!res.ok) throw new Error('API error')
+
+      const data = await res.json()
+      const mapped = mapProducts(data.products || [])
+
+      setProducts(mapped)
+      setTotal(data.pagination?.total || data.totalProducts || 0)
+      setCurrentPage(data.pagination?.page || page)
+      setTotalPages(data.pagination?.totalPages || 1)
+    } catch (error) {
+      console.error('Error fetching products:', error)
+    } finally {
+      setLoading(false)
+>>>>>>> Stashed changes
     }
 
+<<<<<<< Updated upstream
     // Brand filter
     if (filters.brands.length > 0) {
       result = result.filter((p) => filters.brands.includes(p.brand))
@@ -122,6 +166,36 @@ export default function ProductGrid({ initialProducts }: ProductGridProps) {
   // Apply filters
   const handleApplyFilters = () => {
     setFilters(tempFilters)
+=======
+  // Handle page change
+  const handlePageChange = (page: number) => {
+    if (page < 1 || page > totalPages) return
+    window.scrollTo({ top: 0, behavior: 'smooth' })
+    fetchProducts(page, filters)
+    syncFiltersToUrl(filters, page)
+  }
+
+  // Sync filters to URL for shareable links
+  const syncFiltersToUrl = useCallback((appliedFilters: Filters, page: number) => {
+    const params = new URLSearchParams()
+    if (page > 1) params.set('page', String(page))
+    if (appliedFilters.searchQuery) params.set('search', appliedFilters.searchQuery)
+    if (appliedFilters.brands.length > 0) params.set('brand', appliedFilters.brands.join(','))
+    if (appliedFilters.minPrice) params.set('minPrice', appliedFilters.minPrice)
+    if (appliedFilters.maxPrice) params.set('maxPrice', appliedFilters.maxPrice)
+    if (appliedFilters.sortBy) params.set('sortBy', appliedFilters.sortBy)
+
+    const query = params.toString()
+    const newUrl = query ? `/shop?${query}` : '/shop'
+    router.replace(newUrl, { scroll: false })
+  }, [router])
+
+  // Handle filter apply
+  const handleApplyFilters = () => {
+    setFilters(tempFilters)
+    fetchProducts(1, tempFilters)
+    syncFiltersToUrl(tempFilters, 1)
+>>>>>>> Stashed changes
   }
 
   // Clear filters
@@ -139,6 +213,25 @@ export default function ProductGrid({ initialProducts }: ProductGridProps) {
     }
     setTempFilters(emptyFilters)
     setFilters(emptyFilters)
+<<<<<<< Updated upstream
+=======
+    fetchProducts(1, emptyFilters)
+    syncFiltersToUrl(emptyFilters, 1)
+  }
+
+  const handleTempFilterChange = (filterName: string, value: any) => {
+    setTempFilters(prev => ({ ...prev, [filterName]: value }))
+  }
+
+  const toggleArrayFilter = (filterName: string, value: string) => {
+    setTempFilters(prev => {
+      const currentArray = prev[filterName as keyof Filters] as string[]
+      const newArray = currentArray.includes(value)
+        ? currentArray.filter(item => item !== value)
+        : [...currentArray, value]
+      return { ...prev, [filterName]: newArray }
+    })
+>>>>>>> Stashed changes
   }
 
   // Handle Enter key press

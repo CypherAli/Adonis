@@ -8,11 +8,12 @@ interface NewsItem {
   _id: string
   slug: string
   title: string
-  summary: string
+  excerpt: string
   content: string
-  thumbnail?: string
-  author: string
-  isPublished: boolean
+  coverImage?: string
+  author: { name: string; avatar?: string } | string
+  tags?: string[]
+  status: string
   publishedAt?: Date
   viewCount: number
   createdAt: Date
@@ -77,24 +78,27 @@ export default function TinTucPage() {
         ) : (
           <>
             <div className="news-grid">
-              {news.map((item) => (
-                <Link href={`/tin-tuc/${item.slug}`} key={item._id} className="news-card">
-                  {item.thumbnail && (
-                    <div className="news-thumbnail">
-                      <img src={item.thumbnail} alt={item.title} />
+              {news.map((item) => {
+                const authorName = typeof item.author === 'object' ? item.author?.name : (item.author || 'Admin')
+                return (
+                  <Link href={`/tin-tuc/${item.slug}`} key={item._id} className="news-card">
+                    {item.coverImage && (
+                      <div className="news-thumbnail">
+                        <img src={item.coverImage} alt={item.title} />
+                      </div>
+                    )}
+                    <div className="news-content">
+                      <h3>{item.title}</h3>
+                      <p className="news-summary">{item.excerpt}</p>
+                      <div className="news-meta">
+                        <span>{authorName}</span>
+                        <span>👁️ {item.viewCount}</span>
+                        <span>{new Date(item.publishedAt || item.createdAt).toLocaleDateString('vi-VN')}</span>
+                      </div>
                     </div>
-                  )}
-                  <div className="news-content">
-                    <h3>{item.title}</h3>
-                    <p className="news-summary">{item.summary}</p>
-                    <div className="news-meta">
-                      <span>{item.author}</span>
-                      <span>👁️ {item.viewCount}</span>
-                      <span>{new Date(item.createdAt).toLocaleDateString('vi-VN')}</span>
-                    </div>
-                  </div>
-                </Link>
-              ))}
+                  </Link>
+                )
+              })}
             </div>
 
             {totalPages > 1 && (

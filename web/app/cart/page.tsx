@@ -75,7 +75,14 @@ export default function CartPage() {
         sellerName: item.sellerName || item.seller?.shopName || product?.createdBy?.shopName || 'Unknown Shop',
         name: product?.name || item.name || 'Unknown Product',
         brand: product?.brand || item.brand || '',
-        price: item.price || product?.basePrice || 0,
+        price: item.price || (() => {
+          // Try to get price from matching variant
+          if (product?.variants && variantSku !== 'default') {
+            const variant = product.variants.find((v: any) => v.sku === variantSku)
+            if (variant?.price) return variant.price
+          }
+          return product?.basePrice || 0
+        })(),
         quantity: item.quantity || 1,
         stock: product?.stock || item.stock || 99,
         imageUrl: product?.images?.[0] || item.imageUrl || '/images/placeholder-product.svg',

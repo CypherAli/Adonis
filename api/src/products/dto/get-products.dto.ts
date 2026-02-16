@@ -62,6 +62,11 @@ export class GetProductsDto {
   isFeatured?: boolean;
 
   @IsOptional()
+  @IsBoolean()
+  @Type(() => Boolean)
+  inStock?: boolean;
+
+  @IsOptional()
   @IsString()
   sortBy?: string = 'createdAt';
 

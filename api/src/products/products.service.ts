@@ -23,6 +23,7 @@ export class ProductsService {
       color,
       gender,
       isFeatured,
+      inStock,
       sortBy = 'createdAt',
       sortOrder = 'desc',
       exclude,
@@ -41,9 +42,14 @@ export class ProductsService {
       filter.category = category;
     }
 
-    // Brand filter
+    // Brand filter (supports comma-separated values)
     if (brand) {
-      filter.brand = brand;
+      const brands = brand.split(',').map(b => b.trim()).filter(Boolean);
+      if (brands.length === 1) {
+        filter.brand = brands[0];
+      } else if (brands.length > 1) {
+        filter.brand = { $in: brands };
+      }
     }
 
     // Price range filter
@@ -53,13 +59,24 @@ export class ProductsService {
       if (maxPrice !== undefined) filter.basePrice.$lte = maxPrice;
     }
 
-    // Variant filters (size, color, gender)
+    // Variant filters (size, color, gender) - support comma-separated values
     if (size || color || gender) {
       const variantFilters: any = {};
-      if (size) variantFilters['variants.specifications.size'] = size;
-      if (color) variantFilters['variants.specifications.color'] = color;
+      if (size) {
+        const sizes = size.split(',').map(s => s.trim()).filter(Boolean);
+        variantFilters['variants.specifications.size'] = sizes.length === 1 ? sizes[0] : { $in: sizes };
+      }
+      if (color) {
+        const colors = color.split(',').map(c => c.trim()).filter(Boolean);
+        variantFilters['variants.specifications.color'] = colors.length === 1 ? colors[0] : { $in: colors };
+      }
       if (gender) variantFilters['variants.specifications.gender'] = gender;
       Object.assign(filter, variantFilters);
+    }
+
+    // In stock filter
+    if (inStock) {
+      filter['variants.stock'] = { $gt: 0 };
     }
 
     // Featured filter

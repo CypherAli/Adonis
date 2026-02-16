@@ -124,21 +124,33 @@ const DealsPage = () => {
               discountPercent: Math.round(((v.originalPrice - v.price) / v.originalPrice) * 100),
             }))
 
+          if (variantsWithDiscount.length === 0) return null
+
           const maxDiscount = Math.max(...variantsWithDiscount.map((v: any) => v.discountPercent))
           const bestDealVariant = variantsWithDiscount.find(
             (v: any) => v.discountPercent === maxDiscount
           )
+
+          if (!bestDealVariant) return null
+
+          // Calculate total stock across all discounted variants
+          const totalStock = variantsWithDiscount.reduce((sum: number, v: any) => sum + (v.stock || 0), 0)
 
           return {
             ...p,
             price: bestDealVariant.price,
             originalPrice: bestDealVariant.originalPrice,
             discountPercent: maxDiscount,
-            soldCount: p.soldCount || Math.floor(Math.random() * 500) + 50,
-            rating: parseFloat((Math.random() * 1.5 + 3.5).toFixed(1)),
-            reviewCount: Math.floor(Math.random() * 200) + 20,
+            imageUrl: p.images?.[0] || PLACEHOLDER_IMAGES.product,
+            soldCount: p.soldCount || 0,
+            rating: p.rating?.average || 0,
+            reviewCount: p.rating?.count || 0,
+            stock: totalStock,
+            inStock: totalStock > 0,
+            selectedVariant: bestDealVariant,
           }
         })
+        .filter(Boolean)
         .sort((a: any, b: any) => (b.discountPercent || 0) - (a.discountPercent || 0))
 
       setProducts(dealsProducts)
@@ -161,9 +173,18 @@ const DealsPage = () => {
     }).format(price)
   }
 
-  const handleAddToCart = (product: Product) => {
-    addToCart(product)
-    alert(`Đã thêm ${product.name} vào giỏ hàng!`)
+  const handleAddToCart = async (product: any) => {
+    try {
+      await addToCart({
+        ...product,
+        id: product._id,
+        selectedVariant: product.selectedVariant,
+        sku: product.selectedVariant?.sku,
+      })
+      alert(`Đã thêm ${product.name} vào giỏ hàng!`)
+    } catch (err) {
+      console.error('Failed to add to cart:', err)
+    }
   }
 
   if (loading) {
