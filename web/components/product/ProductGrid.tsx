@@ -73,15 +73,6 @@ export default function ProductGrid({
     (filters.minPrice || filters.maxPrice ? 1 : 0) +
     (filters.inStock ? 1 : 0)
 
-  const activeFiltersCount =
-    (filters.searchQuery ? 1 : 0) +
-    filters.brands.length +
-    filters.sizes.length +
-    filters.colors.length +
-    filters.materials.length +
-    (filters.minPrice || filters.maxPrice ? 1 : 0) +
-    (filters.inStock ? 1 : 0)
-
   // Fetch products from API with server-side filters & pagination
   const fetchProducts = useCallback(async (page: number, appliedFilters: Filters) => {
     try {
