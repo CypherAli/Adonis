@@ -26,7 +26,8 @@ export default function CheckoutPage() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState(false)
-  
+  const [tempOrderCode, setTempOrderCode] = useState('')
+
   const [shippingInfo, setShippingInfo] = useState({
     fullName: session?.user?.name || '',
     phone: '',
@@ -37,6 +38,13 @@ export default function CheckoutPage() {
   })
   const [paymentMethod, setPaymentMethod] = useState('cod')
   const [notes, setNotes] = useState('')
+
+  // Generate temp order code for bank transfer QR
+  useEffect(() => {
+    if (!tempOrderCode) {
+      setTempOrderCode(`DH${Date.now().toString().slice(-8)}`)
+    }
+  }, [tempOrderCode])
 
   // Redirect if not logged in
   useEffect(() => {
@@ -296,6 +304,44 @@ export default function CheckoutPage() {
                   <span>💳 Thẻ tín dụng/ghi nợ</span>
                 </label>
               </div>
+
+              {/* VietQR Bank Transfer Section */}
+              {paymentMethod === 'bank_transfer' && tempOrderCode && total > 0 && (
+                <div className="bank-transfer-qr-section">
+                  <div className="qr-header">
+                    <h4>Thông tin chuyển khoản</h4>
+                    <p>Quét mã QR bên dưới để thanh toán</p>
+                  </div>
+                  <div className="qr-code-container">
+                    <img
+                      src={`https://img.vietqr.io/image/SHB-0848565650-compact.png?amount=${total}&addInfo=${encodeURIComponent(`${tempOrderCode} ${shippingInfo.fullName || 'Khach hang'}`)}`}
+                      alt="VietQR Payment Code"
+                      className="qr-code-image"
+                    />
+                  </div>
+                  <div className="bank-info">
+                    <div className="bank-info-row">
+                      <span>Ngân hàng:</span>
+                      <strong>SHB - Sài Gòn Hà Nội</strong>
+                    </div>
+                    <div className="bank-info-row">
+                      <span>Số tài khoản:</span>
+                      <strong>0848565650</strong>
+                    </div>
+                    <div className="bank-info-row">
+                      <span>Số tiền:</span>
+                      <strong>{total.toLocaleString('vi-VN')}đ</strong>
+                    </div>
+                    <div className="bank-info-row">
+                      <span>Nội dung CK:</span>
+                      <strong>{tempOrderCode} {shippingInfo.fullName || 'Khach hang'}</strong>
+                    </div>
+                  </div>
+                  <div className="qr-note">
+                    ⚠️ Vui lòng chuyển khoản đúng số tiền và nội dung để đơn hàng được xử lý nhanh nhất.
+                  </div>
+                </div>
+              )}
             </div>
           </div>
 

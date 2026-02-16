@@ -322,3 +322,79 @@
 .btn-view-orders:hover {
   background: #0056b3;
 }
+
+/* Bank Transfer QR Section */
+.bank-transfer-qr-section {
+  margin-top: 1.5rem;
+  padding: 1.5rem;
+  background: linear-gradient(135deg, #f0f7ff 0%, #e8f4fd 100%);
+  border: 2px solid #b3d9ff;
+  border-radius: 12px;
+}
+
+.qr-header {
+  text-align: center;
+  margin-bottom: 1.25rem;
+}
+
+.qr-header h4 {
+  font-size: 1.1rem;
+  color: #0056b3;
+  margin: 0 0 0.25rem 0;
+}
+
+.qr-header p {
+  font-size: 0.9rem;
+  color: #666;
+  margin: 0;
+}
+
+.qr-code-container {
+  text-align: center;
+  margin-bottom: 1.25rem;
+}
+
+.qr-code-image {
+  max-width: 280px;
+  width: 100%;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.bank-info {
+  background: white;
+  border-radius: 8px;
+  padding: 1rem;
+  margin-bottom: 1rem;
+}
+
+.bank-info-row {
+  display: flex;
+  justify-content: space-between;
+  padding: 0.5rem 0;
+  border-bottom: 1px solid #f0f0f0;
+  font-size: 0.9rem;
+}
+
+.bank-info-row:last-child {
+  border-bottom: none;
+}
+
+.bank-info-row span {
+  color: #666;
+}
+
+.bank-info-row strong {
+  color: #333;
+}
+
+.qr-note {
+  background: #fff8e1;
+  border: 1px solid #ffe082;
+  color: #f57f17;
+  padding: 0.75rem;
+  border-radius: 8px;
+  font-size: 0.85rem;
+  text-align: center;
+  line-height: 1.5;
+}

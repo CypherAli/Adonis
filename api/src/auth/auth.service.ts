@@ -1,19 +1,25 @@
-/* eslint-disable @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-return */
+/* eslint-disable @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unsafe-member-access */
 import {
   Injectable,
   UnauthorizedException,
   ConflictException,
+  BadRequestException,
+  NotFoundException,
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { User, UserDocument } from '../users/schemas/user.schema';
+import { Order, OrderDocument } from '../orders/schemas/order.schema';
+import { Review, ReviewDocument } from '../reviews/schemas/review.schema';
 import { RegisterDto, LoginDto } from './dto/auth.dto';
 
 @Injectable()
 export class AuthService {
   constructor(
     @InjectModel(User.name) private userModel: Model<UserDocument>,
+    @InjectModel(Order.name) private orderModel: Model<OrderDocument>,
+    @InjectModel(Review.name) private reviewModel: Model<ReviewDocument>,
     private jwtService: JwtService,
   ) {}
 
@@ -76,6 +82,70 @@ export class AuthService {
 
   async validateUser(userId: string) {
     return this.userModel.findById(userId).select('-password');
+  }
+
+  async getProfile(userId: string) {
+    const user = await this.userModel.findById(userId).select('-password');
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+    return user;
+  }
+
+  async updateProfile(userId: string, updateData: any) {
+    const allowedFields = ['name', 'phone', 'address', 'avatar'];
+    const sanitized: Record<string, any> = {};
+
+    for (const field of allowedFields) {
+      if (updateData[field] !== undefined) {
+        sanitized[field] = updateData[field];
+      }
+    }
+
+    const user = await this.userModel
+      .findByIdAndUpdate(userId, sanitized, { new: true })
+      .select('-password');
+
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+
+    return { user };
+  }
+
+  async changePassword(
+    userId: string,
+    currentPassword: string,
+    newPassword: string,
+  ) {
+    const user = await this.userModel.findById(userId);
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+
+    const isValid = await user.comparePassword(currentPassword);
+    if (!isValid) {
+      throw new BadRequestException('Mật khẩu hiện tại không đúng');
+    }
+
+    user.password = newPassword;
+    await user.save();
+
+    return { message: 'Đổi mật khẩu thành công' };
+  }
+
+  async getUserStats(userId: string) {
+    const [orderCount, reviewCount] = await Promise.all([
+      this.orderModel.countDocuments({ user: userId }),
+      this.reviewModel.countDocuments({ user: userId }),
+    ]);
+
+    return {
+      orders: orderCount,
+      wishlist: 0,
+      reviews: reviewCount,
+      vouchers: 0,
+    };
   }
 
   private generateToken(user: UserDocument): string {
