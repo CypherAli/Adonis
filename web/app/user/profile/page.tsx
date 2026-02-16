@@ -78,7 +78,8 @@ export default function ProfilePage() {
   const fetchOrders = async () => {
     try {
       const response = await api.get('/api/orders')
-      setOrders(response.data.orders || [])
+      const data = response.data
+      setOrders(Array.isArray(data) ? data : data.orders || [])
     } catch (error) {
       // Silent fail
     }
@@ -419,7 +420,7 @@ export default function ProfilePage() {
                           </div>
                           <div className="flex justify-between items-center">
                             <p className="text-sm text-gray-600">{order.items?.length} sản phẩm</p>
-                            <p className="font-bold text-orange-600">{order.total?.toLocaleString()}₫</p>
+                            <p className="font-bold text-orange-600">{(order.totalAmount || order.total)?.toLocaleString()}₫</p>
                           </div>
                         </div>
                       ))}
@@ -602,7 +603,7 @@ export default function ProfilePage() {
                         <div className="flex justify-between items-center border-t pt-4">
                           <div>
                             <p className="text-sm text-gray-600">Tổng tiền:</p>
-                            <p className="text-xl font-bold text-orange-600">{order.total?.toLocaleString()}₫</p>
+                            <p className="text-xl font-bold text-orange-600">{(order.totalAmount || order.total)?.toLocaleString()}₫</p>
                           </div>
                           <button
                             onClick={() => router.push(`/user/orders`)}

@@ -30,7 +30,6 @@ export class ProductsService {
     } = query;
 
     // Build filter
-
     const filter: Record<string, any> = { isActive: true };
 
     // Text search

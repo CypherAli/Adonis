@@ -1,4 +1,5 @@
 import type { Metadata } from 'next'
+import { Suspense } from 'react'
 import { Inter } from 'next/font/google'
 import dynamic from 'next/dynamic'
 import { Providers } from '@/components/providers/Providers'
@@ -85,7 +86,9 @@ export default function RootLayout({
       <body className={inter.className} suppressHydrationWarning>
         <Providers>
           <ScrollToTop />
-          <Header />
+          <Suspense fallback={null}>
+            <Header />
+          </Suspense>
           <PageTransition>
             <main style={{ minHeight: '70vh' }}>
               {children}
