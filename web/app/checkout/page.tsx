@@ -22,7 +22,7 @@ interface CheckoutItem {
 export default function CheckoutPage() {
   const router = useRouter()
   const { data: session } = useSession()
-  const { cartItems, clearCart } = useCart()
+  const { cartItems, refreshCart } = useCart()
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState(false)
@@ -59,7 +59,15 @@ export default function CheckoutPage() {
     }
 
     const subtotal = cartItems.reduce(
-      (sum: number, item: any) => sum + item.price * item.quantity,
+      (sum: number, item: any) => {
+        let price = item.price || 0
+        if (!price && item.product?.variants && item.variantSku && item.variantSku !== 'default') {
+          const variant = item.product.variants.find((v: any) => v.sku === item.variantSku)
+          if (variant?.price) price = variant.price
+        }
+        if (!price) price = item.product?.basePrice || item.product?.price || 0
+        return sum + price * item.quantity
+      },
       0
     )
     const shippingFee = subtotal > 500000 ? 0 : 30000
@@ -81,14 +89,36 @@ export default function CheckoutPage() {
       setLoading(true)
       setError(null)
 
-      // Prepare order data
-      const orderData = {
-        items: cartItems.map((item: any) => ({
-          productId: item.product?._id || item.product,
+      // Prepare order data - validate each item
+      const orderItems = cartItems.map((item: any) => {
+        const productId = item.product?._id || item.product?.id || (typeof item.product === 'string' ? item.product : item.productId)
+        const variantSku = item.variantSku || 'default'
+        // Extract price: item.price > variant price > base price
+        let price = item.price || 0
+        if (!price && item.product?.variants && variantSku !== 'default') {
+          const variant = item.product.variants.find((v: any) => v.sku === variantSku)
+          if (variant?.price) price = variant.price
+        }
+        if (!price) price = item.product?.basePrice || item.product?.price || 0
+        return {
+          productId: productId ? String(productId) : null,
           variantSku: item.variantSku || 'default',
           quantity: item.quantity,
-          price: item.price,
-        })),
+          price,
+        }
+      })
+
+      // Validate: no items with missing productId or 0 price
+      const invalidItems = orderItems.filter(i => !i.productId || i.price <= 0)
+      if (invalidItems.length > 0) {
+        console.error('❌ Invalid order items:', invalidItems)
+        setError('Giỏ hàng có sản phẩm không hợp lệ. Vui lòng xóa và thêm lại sản phẩm.')
+        setLoading(false)
+        return
+      }
+
+      const orderData = {
+        items: orderItems,
         shippingAddress: shippingInfo,
         paymentMethod,
         notes,
@@ -98,7 +128,7 @@ export default function CheckoutPage() {
       await api.post('/api/orders', orderData)
 
       // Refresh frontend cart state (backend already cleared it)
-      await clearCart()
+      await refreshCart()
 
       setSuccess(true)
 
@@ -274,21 +304,25 @@ export default function CheckoutPage() {
             <h2>Đơn hàng của bạn</h2>
             
             <div className="order-items">
-              {cartItems.map((item: any) => (
-                <div key={item._id || item.id} className="order-item">
-                  <img 
-                    src={item.imageUrl || item.product?.images?.[0] || '/images/placeholder.png'} 
-                    alt={item.name || item.product?.name}
-                  />
-                  <div className="item-info">
-                    <h4>{item.name || item.product?.name}</h4>
-                    <p>SL: {item.quantity}</p>
+              {cartItems.map((item: any, index: number) => {
+                const productName = item.name || item.product?.name || 'Sản phẩm'
+                const imageUrl = item.imageUrl || item.product?.images?.[0] || '/images/placeholder.png'
+                const price = item.price || item.product?.basePrice || item.product?.price || 0
+                const productId = item.product?._id || item.product?.id || item.productId
+                const key = `${productId}-${item.variantSku || 'default'}-${index}`
+                return (
+                  <div key={key} className="order-item">
+                    <img src={imageUrl} alt={productName} />
+                    <div className="item-info">
+                      <h4>{productName}</h4>
+                      <p>SL: {item.quantity}</p>
+                    </div>
+                    <div className="item-price">
+                      {(price * item.quantity).toLocaleString('vi-VN')}đ
+                    </div>
                   </div>
-                  <div className="item-price">
-                    {(item.price * item.quantity).toLocaleString('vi-VN')}đ
-                  </div>
-                </div>
-              ))}
+                )
+              })}
             </div>
 
             <div className="order-totals">

@@ -15,7 +15,7 @@ export class CartService {
   async getCart(userId: string) {
     let cart = await this.cartModel
       .findOne({ user: userId })
-      .populate('items.product')
+      .populate('items.product', 'name images basePrice brand category variants')
       .populate('items.seller', 'name shopName')
       .exec();
 
@@ -23,52 +23,47 @@ export class CartService {
       cart = await this.cartModel.create({ user: userId, items: [] });
     }
 
-    // Log cart items for debugging
     console.log(`📦 getCart for user ${userId}: ${cart.items.length} items`);
-    
-    // Detailed logging of each item
-    cart.items.forEach((item: any, index) => {
-      let productId: string;
-      const productName = item.product?.name || 'Unknown';
-      
-      if (item.product?._id) {
-        productId = item.product._id.toString();
-      } else if (item.product) {
-        productId = item.product.toString();
-      } else {
-        productId = 'INVALID';
+
+    // Debug: check if products are populated
+    if (cart.items.length > 0) {
+      const firstItem = cart.items[0] as any;
+      const isPopulated = firstItem.product && typeof firstItem.product === 'object' && firstItem.product.name;
+      console.log(`  🔍 First item product populated: ${isPopulated ? 'YES ✅' : 'NO ❌'}`);
+      if (!isPopulated && firstItem.product) {
+        console.log(`  🔍 Product value type: ${typeof firstItem.product}, value: ${firstItem.product}`);
       }
-      
-      console.log(`  [${index}] ${productId} (${productName}), Variant: ${item.variantSku}, Qty: ${item.quantity}`);
-    });
-    
-    // Detect and clean duplicates
+    }
+
+    // Check for null products (deleted from DB) and duplicates
     const seen = new Set<string>();
     let hasDuplicates = false;
-    
+    const hasNullProducts = cart.items.some((item: any) => !item.product);
+
+    // Clean up null products first
+    if (hasNullProducts) {
+      console.log('🧹 Removing items with deleted products...');
+      cart.items = cart.items.filter((item: any) => item.product != null);
+      await cart.save();
+      const refreshed = await this.cartModel
+        .findOne({ user: userId })
+        .populate('items.product', 'name images basePrice brand category variants')
+        .populate('items.seller', 'name shopName')
+        .exec();
+      if (refreshed) cart = refreshed;
+    }
+
+    // Detect duplicates
     cart.items.forEach((item: any) => {
-      let productId: string;
-      
-      if (item.product?._id) {
-        productId = item.product._id.toString();
-      } else if (item.product) {
-        productId = item.product.toString();
-      } else {
-        console.error('❌ Invalid product in cart item');
-        return;
-      }
-      
-      const variantSku = item.variantSku || 'default';
-      const key = `${productId}###${variantSku}`;
-      
-      if (seen.has(key)) {
-        console.warn(`⚠️ DUPLICATE FOUND: ${key}`);
-        hasDuplicates = true;
-      }
+      const productId = item.product?._id
+        ? item.product._id.toString()
+        : item.product?.toString();
+      if (!productId) return;
+      const key = `${productId}###${item.variantSku || 'default'}`;
+      if (seen.has(key)) hasDuplicates = true;
       seen.add(key);
     });
-    
-    // Auto-clean duplicates if found
+
     if (hasDuplicates) {
       console.log('🧹 Auto-cleaning duplicates...');
       return await this.removeDuplicatesFromCart(userId);
@@ -334,7 +329,7 @@ export class CartService {
       // Refetch with populated data
       return await this.cartModel
         .findOne({ user: userId })
-        .populate('items.product')
+        .populate('items.product', 'name images basePrice brand category variants')
         .populate('items.seller', 'name shopName')
         .exec();
     }

@@ -3,6 +3,7 @@ import { Document, Types } from 'mongoose';
 
 export type CartDocument = Cart & Document;
 
+@Schema({ _id: false })
 class CartItem {
   @Prop({ type: Types.ObjectId, ref: 'Product', required: true })
   product: Types.ObjectId;
@@ -44,7 +45,7 @@ export class Cart {
 export const CartSchema = SchemaFactory.createForClass(Cart);
 
 // Calculate totals before saving
-CartSchema.pre('save', function (next) {
+CartSchema.pre('save', function () {
   // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-this-alias
   const cart = this as any;
   // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access

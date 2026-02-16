@@ -11,6 +11,9 @@ interface CartItem {
   quantity: number
   size?: string
   color?: string
+  variantSku?: string
+  price?: number
+  hasReview?: boolean
 }
 
 interface CartContextType {
@@ -19,6 +22,7 @@ interface CartContextType {
   removeFromCart: (itemId: string) => Promise<void>
   updateQuantity: (itemId: string, quantity: number) => Promise<void>
   clearCart: () => Promise<void>
+  refreshCart: () => Promise<void>
   cartCount: number
   cartTotal: number
   loading: boolean
@@ -267,13 +271,14 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
         console.log('    productId:', productId)
         console.log('    variantSku:', variantSku)
         
-        if (!productId || !variantSku) {
+        if (!productId) {
           console.error('❌ Invalid itemId format:', itemId)
           throw new Error('Invalid item ID format')
         }
-        
-        // URL encode variantSku to handle special characters
-        const encodedVariantSku = encodeURIComponent(variantSku)
+
+        // Use 'default' if variantSku is empty/undefined
+        const safeVariantSku = variantSku || 'default'
+        const encodedVariantSku = encodeURIComponent(safeVariantSku)
         const deleteUrl = `/api/cart/${productId}/${encodedVariantSku}`
         
         console.log('  Encoded variantSku:', encodedVariantSku)
@@ -351,13 +356,14 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
         console.log('    productId:', productId)
         console.log('    variantSku:', variantSku)
         
-        if (!productId || !variantSku) {
+        if (!productId) {
           console.error('❌ Invalid itemId format:', itemId)
           throw new Error('Invalid item ID format')
         }
-        
-        // URL encode variantSku
-        const encodedVariantSku = encodeURIComponent(variantSku)
+
+        // Use 'default' if variantSku is empty/undefined
+        const safeVariantSku = variantSku || 'default'
+        const encodedVariantSku = encodeURIComponent(safeVariantSku)
         const updateUrl = `/api/cart/${productId}/${encodedVariantSku}`
         
         console.log('  Encoded variantSku:', encodedVariantSku)
@@ -382,8 +388,8 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
           })
           
           console.log('✅ Server update successful:', response.status)
-          // Fetch to sync with server
-          await fetchCart(session.accessToken)
+          // Don't fetchCart here - optimistic update is already applied
+          // Fetching would overwrite the optimistic state and cause UI flickering
         } catch (error: any) {
           console.error('❌ === UPDATE ERROR ===')
           console.error('  Status:', error.response?.status)
@@ -419,11 +425,11 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
       setLoading(true)
       
       if (session?.user && session.accessToken) {
-        // Backend uses POST, not DELETE
+        // Optimistic clear
+        setCartItems([])
         await api.post('/api/cart/clear', {}, {
           headers: { Authorization: `Bearer ${session.accessToken}` }
         })
-        await fetchCart(session.accessToken)
       } else {
         localStorage.removeItem('guestCart')
         setCartItems([])
@@ -440,8 +446,21 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
     }
   }, [session, fetchCart])
 
+  // Refresh cart from server (used after backend-side cart clearing, e.g. after order)
+  const refreshCart = useCallback(async () => {
+    if (session?.accessToken) {
+      await fetchCart(session.accessToken)
+    } else {
+      const savedCart = localStorage.getItem('guestCart')
+      setCartItems(savedCart ? JSON.parse(savedCart) : [])
+    }
+  }, [session?.accessToken, fetchCart])
+
   const cartCount = (cartItems || []).reduce((total, item) => total + item.quantity, 0)
-  const cartTotal = (cartItems || []).reduce((total, item) => total + (item.product.price * item.quantity), 0)
+  const cartTotal = (cartItems || []).reduce((total, item) => {
+    const price = item.price || item.product?.price || item.product?.basePrice || 0
+    return total + (price * item.quantity)
+  }, 0)
 
   const contextValue = useMemo(() => ({
     cartItems: cartItems || [],
@@ -449,10 +468,11 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
     removeFromCart,
     updateQuantity,
     clearCart,
+    refreshCart,
     cartCount,
     cartTotal,
     loading,
-  }), [cartItems, cartCount, cartTotal, loading, addToCart, removeFromCart, updateQuantity, clearCart])
+  }), [cartItems, cartCount, cartTotal, loading, addToCart, removeFromCart, updateQuantity, clearCart, refreshCart])
 
   return (
     <CartContext.Provider value={contextValue}>

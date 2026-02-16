@@ -90,10 +90,15 @@ export class OrdersService {
 
     // Decrease stock for ordered variants
     for (const item of items) {
-      await this.productModel.updateOne(
+      const result = await this.productModel.updateOne(
         { _id: item.productId, 'variants.sku': item.variantSku },
-        { $inc: { 'variants.$.stock': -item.quantity } },
+        { $inc: { 'variants.$.stock': -item.quantity, soldCount: item.quantity } },
       );
+      if (result.matchedCount === 0) {
+        console.warn(
+          `Stock decrement skipped: variant "${item.variantSku}" not found in product ${item.productId}`,
+        );
+      }
     }
 
     return order;
