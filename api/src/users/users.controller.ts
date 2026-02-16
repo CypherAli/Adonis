@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
 import {
   Controller,
   Get,
@@ -18,7 +19,7 @@ export class UsersController {
   @Get('wishlist')
   @UseGuards(JwtAuthGuard)
   async getWishlist(@CurrentUser() user: any) {
-    return this.usersService.getWishlist(user._id);
+    return this.usersService.getWishlist(String(user._id));
   }
 
   @Post('wishlist')
@@ -27,7 +28,7 @@ export class UsersController {
     @CurrentUser() user: any,
     @Body('productId') productId: string,
   ) {
-    return this.usersService.addToWishlist(user._id, productId);
+    return this.usersService.addToWishlist(String(user._id), productId);
   }
 
   @Delete('wishlist/:productId')
@@ -36,12 +37,12 @@ export class UsersController {
     @CurrentUser() user: any,
     @Param('productId') productId: string,
   ) {
-    return this.usersService.removeFromWishlist(user._id, productId);
+    return this.usersService.removeFromWishlist(String(user._id), productId);
   }
 
   @Delete('wishlist/clear/all')
   @UseGuards(JwtAuthGuard)
   async clearWishlist(@CurrentUser() user: any) {
-    return this.usersService.clearWishlist(user._id);
+    return this.usersService.clearWishlist(String(user._id));
   }
 }

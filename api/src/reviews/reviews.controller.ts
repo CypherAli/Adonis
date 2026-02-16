@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
 import {
   Controller,
   Get,
@@ -16,18 +17,16 @@ import { CurrentUser } from '../auth/decorators/current-user.decorator';
 export class ReviewsController {
   constructor(private readonly reviewsService: ReviewsService) {}
 
-  // ✅ GET USER REVIEWS - với JOIN query
   @Get('my-reviews')
   @UseGuards(JwtAuthGuard)
   async getMyReviews(@CurrentUser() user: any) {
-    return this.reviewsService.getUserReviewsWithProducts(user._id);
+    return this.reviewsService.getUserReviewsWithProducts(String(user._id));
   }
 
-  // ✅ GET ORDERS WITH REVIEW STATUS - tối ưu
   @Get('orders-with-status')
   @UseGuards(JwtAuthGuard)
   async getOrdersWithReviewStatus(@CurrentUser() user: any) {
-    return this.reviewsService.getUserOrdersWithReviewStatus(user._id);
+    return this.reviewsService.getUserOrdersWithReviewStatus(String(user._id));
   }
 
   @Get('product/:productId')
@@ -45,12 +44,12 @@ export class ReviewsController {
     @CurrentUser() user: any,
     @Body() createReviewDto: CreateReviewDto,
   ) {
-    return this.reviewsService.createReview(user._id, createReviewDto);
+    return this.reviewsService.createReview(String(user._id), createReviewDto);
   }
 
   @Post(':id/helpful')
   @UseGuards(JwtAuthGuard)
   async markHelpful(@CurrentUser() user: any, @Param('id') reviewId: string) {
-    return this.reviewsService.markHelpful(reviewId, user._id);
+    return this.reviewsService.markHelpful(reviewId, String(user._id));
   }
 }

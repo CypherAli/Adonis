@@ -135,9 +135,9 @@ export class Order {
 
 export const OrderSchema = SchemaFactory.createForClass(Order);
 
-// Generate order number before saving
-OrderSchema.pre('save', function () {
-  // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-this-alias
+// Generate order number before validation so `required` passes
+OrderSchema.pre('validate', function () {
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
   const order = this as any;
   // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
   if (!order.orderNumber) {

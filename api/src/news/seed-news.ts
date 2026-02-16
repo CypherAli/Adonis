@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-floating-promises, @typescript-eslint/restrict-template-expressions */
 /**
  * Seed script to populate news articles in the database.
  *
@@ -9,7 +10,8 @@ import * as dotenv from 'dotenv';
 
 dotenv.config();
 
-const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://localhost:27017/shoe_shop';
+const MONGODB_URI =
+  process.env.MONGODB_URI || 'mongodb://localhost:27017/shoe_shop';
 
 const NewsSchema = new mongoose.Schema(
   {
@@ -18,9 +20,17 @@ const NewsSchema = new mongoose.Schema(
     content: { type: String, required: true },
     excerpt: String,
     coverImage: String,
-    author: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
+    author: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'User',
+      required: true,
+    },
     tags: [String],
-    status: { type: String, enum: ['draft', 'published', 'archived'], default: 'draft' },
+    status: {
+      type: String,
+      enum: ['draft', 'published', 'archived'],
+      default: 'draft',
+    },
     viewCount: { type: Number, default: 0 },
     publishedAt: Date,
   },
@@ -41,7 +51,8 @@ const UserModel = mongoose.model('User', UserSchema);
 const newsArticles = [
   {
     title: 'Top 10 xu hướng giày sneaker hot nhất 2025',
-    excerpt: 'Khám phá những xu hướng giày sneaker đang làm mưa làm gió trên thị trường năm 2025, từ chunky sneakers đến minimalist designs.',
+    excerpt:
+      'Khám phá những xu hướng giày sneaker đang làm mưa làm gió trên thị trường năm 2025, từ chunky sneakers đến minimalist designs.',
     content: `
       <h2>Xu hướng giày sneaker 2025</h2>
       <p>Năm 2025 đánh dấu sự trở lại mạnh mẽ của nhiều phong cách giày sneaker độc đáo. Từ những đôi chunky sneakers với đế dày cho đến những thiết kế tối giản, thị trường giày năm nay có rất nhiều điều thú vị để khám phá.</p>
@@ -65,11 +76,13 @@ const newsArticles = [
       <p>Platform sneakers, slip-on sneakers, knit sneakers, collaborations giữa các thương hiệu, và giày với công nghệ mới đều là những xu hướng đáng chú ý trong năm nay.</p>
     `,
     tags: ['sneaker', 'xu-huong', '2025', 'thoi-trang'],
-    coverImage: 'https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=800',
+    coverImage:
+      'https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=800',
   },
   {
     title: 'Hướng dẫn chọn size giày chuẩn không cần thử',
-    excerpt: 'Bí quyết đo chân và chọn size giày online chính xác, giúp bạn mua giày trực tuyến không lo sai size.',
+    excerpt:
+      'Bí quyết đo chân và chọn size giày online chính xác, giúp bạn mua giày trực tuyến không lo sai size.',
     content: `
       <h2>Cách đo chân và chọn size giày chuẩn</h2>
       <p>Mua giày online luôn là một thử thách vì bạn không thể thử trực tiếp. Tuy nhiên, với những mẹo sau đây, bạn hoàn toàn có thể chọn được đúng size.</p>
@@ -95,11 +108,13 @@ const newsArticles = [
       </ul>
     `,
     tags: ['huong-dan', 'size-giay', 'meo-hay', 'mua-sam'],
-    coverImage: 'https://images.unsplash.com/photo-1460353581641-37baddab0fa2?w=800',
+    coverImage:
+      'https://images.unsplash.com/photo-1460353581641-37baddab0fa2?w=800',
   },
   {
     title: 'Flash Sale cuối tuần - Giảm đến 50% tất cả sản phẩm',
-    excerpt: 'Chương trình khuyến mãi lớn nhất tháng! Giảm giá sốc đến 50% cho hàng trăm sản phẩm giày dép chính hãng.',
+    excerpt:
+      'Chương trình khuyến mãi lớn nhất tháng! Giảm giá sốc đến 50% cho hàng trăm sản phẩm giày dép chính hãng.',
     content: `
       <h2>Flash Sale Cuối Tuần - Đừng Bỏ Lỡ!</h2>
       <p>Shoe Store vui mừng thông báo chương trình Flash Sale lớn nhất tháng với hàng trăm sản phẩm được giảm giá sốc lên đến 50%!</p>
@@ -122,11 +137,13 @@ const newsArticles = [
       <p>Truy cập mục <strong>Hot Deals</strong> trên website để xem tất cả sản phẩm đang được giảm giá. Thêm vào giỏ hàng và thanh toán - giá ưu đãi sẽ được áp dụng tự động!</p>
     `,
     tags: ['khuyen-mai', 'flash-sale', 'giam-gia', 'hot-deal'],
-    coverImage: 'https://images.unsplash.com/photo-1556906781-9a412961c28c?w=800',
+    coverImage:
+      'https://images.unsplash.com/photo-1556906781-9a412961c28c?w=800',
   },
   {
     title: 'Cách vệ sinh giày sneaker trắng sạch như mới',
-    excerpt: 'Hướng dẫn chi tiết cách làm sạch giày trắng bị ố vàng, bẩn dính, giúp giày luôn trắng sáng như mới mua.',
+    excerpt:
+      'Hướng dẫn chi tiết cách làm sạch giày trắng bị ố vàng, bẩn dính, giúp giày luôn trắng sáng như mới mua.',
     content: `
       <h2>Bí quyết giữ giày trắng luôn như mới</h2>
       <p>Giày trắng là item không thể thiếu nhưng lại rất dễ bẩn. Đừng lo, với những cách sau đây, giày bạn sẽ luôn trắng sáng!</p>
@@ -149,11 +166,13 @@ const newsArticles = [
       </ul>
     `,
     tags: ['huong-dan', 've-sinh-giay', 'meo-hay', 'giay-trang'],
-    coverImage: 'https://images.unsplash.com/photo-1595950653106-6c9ebd614d3a?w=800',
+    coverImage:
+      'https://images.unsplash.com/photo-1595950653106-6c9ebd614d3a?w=800',
   },
   {
     title: 'Nike vs Adidas: So sánh chi tiết hai ông lớn ngành giày',
-    excerpt: 'Phân tích ưu nhược điểm của Nike và Adidas, giúp bạn chọn được thương hiệu phù hợp nhất với phong cách của mình.',
+    excerpt:
+      'Phân tích ưu nhược điểm của Nike và Adidas, giúp bạn chọn được thương hiệu phù hợp nhất với phong cách của mình.',
     content: `
       <h2>Nike vs Adidas - Đâu là lựa chọn tốt hơn?</h2>
       <p>Nike và Adidas là hai thương hiệu giày thể thao lớn nhất thế giới. Mỗi thương hiệu đều có những thế mạnh riêng. Hãy cùng so sánh!</p>
@@ -172,11 +191,13 @@ const newsArticles = [
       <p>Không có thương hiệu nào tốt hơn hoàn toàn. Nếu bạn thích chạy bộ, Nike có thể là lựa chọn tốt hơn. Nếu bạn thích lifestyle và streetwear, Adidas đáng để xem xét.</p>
     `,
     tags: ['so-sanh', 'nike', 'adidas', 'review'],
-    coverImage: 'https://images.unsplash.com/photo-1491553895911-0055eca6402d?w=800',
+    coverImage:
+      'https://images.unsplash.com/photo-1491553895911-0055eca6402d?w=800',
   },
   {
     title: 'Shoe Store khai trương chi nhánh mới tại Đà Nẵng',
-    excerpt: 'Shoe Store chính thức mở rộng ra miền Trung với cửa hàng mới tại trung tâm thành phố Đà Nẵng, nhiều ưu đãi hấp dẫn chờ đón bạn.',
+    excerpt:
+      'Shoe Store chính thức mở rộng ra miền Trung với cửa hàng mới tại trung tâm thành phố Đà Nẵng, nhiều ưu đãi hấp dẫn chờ đón bạn.',
     content: `
       <h2>Khai Trương Chi Nhánh Đà Nẵng</h2>
       <p>Shoe Store vui mừng thông báo khai trương cửa hàng mới tại 123 Nguyễn Văn Linh, Quận Hải Châu, TP. Đà Nẵng!</p>
@@ -199,7 +220,8 @@ const newsArticles = [
       <p>Hãy đến và trải nghiệm không gian mua sắm hiện đại cùng hàng ngàn sản phẩm giày dép chính hãng!</p>
     `,
     tags: ['su-kien', 'khai-truong', 'da-nang', 'uu-dai'],
-    coverImage: 'https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=800',
+    coverImage:
+      'https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=800',
   },
 ];
 
@@ -216,11 +238,15 @@ async function seed() {
     }
 
     if (!author) {
-      console.error('❌ No user found in database. Please create a user first.');
+      console.error(
+        '❌ No user found in database. Please create a user first.',
+      );
       process.exit(1);
     }
 
-    console.log(`📝 Using author: ${author.name || author.username} (${author._id})`);
+    console.log(
+      `📝 Using author: ${author.name || author.username} (${author._id})`,
+    );
 
     // Check if news already exists
     const existingCount = await NewsModel.countDocuments();
@@ -263,7 +289,9 @@ async function seed() {
         slug,
         author: author._id,
         status: 'published',
-        publishedAt: new Date(Date.now() - Math.random() * 30 * 24 * 60 * 60 * 1000), // Random date within last 30 days
+        publishedAt: new Date(
+          Date.now() - Math.random() * 30 * 24 * 60 * 60 * 1000,
+        ), // Random date within last 30 days
         viewCount: Math.floor(Math.random() * 500) + 50,
       });
 

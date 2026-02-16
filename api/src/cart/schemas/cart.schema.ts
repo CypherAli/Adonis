@@ -46,7 +46,7 @@ export const CartSchema = SchemaFactory.createForClass(Cart);
 
 // Calculate totals before saving
 CartSchema.pre('save', function () {
-  // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-this-alias
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
   const cart = this as any;
   // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
   cart.totalItems = cart.items.reduce(

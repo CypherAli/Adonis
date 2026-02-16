@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-floating-promises, @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-argument */
 import { NestFactory } from '@nestjs/core';
 import { ValidationPipe } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
@@ -27,6 +28,8 @@ async function bootstrap() {
 
   const port = configService.get('PORT') || 3333;
   await app.listen(port);
-  console.log(`🚀 API is running on: http://localhost:${port}/${configService.get('API_PREFIX')}`);
+  console.log(
+    `🚀 API is running on: http://localhost:${port}/${configService.get('API_PREFIX')}`,
+  );
 }
 bootstrap();

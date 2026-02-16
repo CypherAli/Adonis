@@ -1,6 +1,7 @@
+/* eslint-disable @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-base-to-string */
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import { Model, Types } from 'mongoose';
+import { Model } from 'mongoose';
 import { Wishlist, WishlistDocument } from './schemas/wishlist.schema';
 import { Product, ProductDocument } from '../products/schemas/product.schema';
 
@@ -18,13 +19,13 @@ export class UsersService {
       .exec();
 
     if (!wishlist) {
-      wishlist = await this.wishlistModel.create({ 
-        userId: userId as any, 
-        items: [] 
+      wishlist = await this.wishlistModel.create({
+        userId: userId as any,
+        items: [],
       });
     }
 
-    return wishlist.items.map(item => ({
+    return wishlist.items.map((item) => ({
       product: item.product,
       addedAt: item.addedAt,
     }));
@@ -36,23 +37,25 @@ export class UsersService {
       throw new NotFoundException('Product not found');
     }
 
-    let wishlist = await this.wishlistModel.findOne({ userId: userId as any });
-    
+    let wishlist = await this.wishlistModel.findOne({
+      userId: userId as any,
+    });
+
     if (!wishlist) {
-      wishlist = await this.wishlistModel.create({ 
-        userId: userId as any, 
-        items: [] 
+      wishlist = await this.wishlistModel.create({
+        userId: userId as any,
+        items: [],
       });
     }
 
     const exists = wishlist.items.some(
-      item => item.product.toString() === productId
+      (item) => String(item.product) === productId,
     );
 
     if (!exists) {
-      wishlist.items.push({ 
-        product: productId as any, 
-        addedAt: new Date() 
+      wishlist.items.push({
+        product: productId as any,
+        addedAt: new Date(),
       });
       await wishlist.save();
     }
@@ -61,14 +64,16 @@ export class UsersService {
   }
 
   async removeFromWishlist(userId: string, productId: string) {
-    const wishlist = await this.wishlistModel.findOne({ userId: userId as any });
-    
+    const wishlist = await this.wishlistModel.findOne({
+      userId: userId as any,
+    });
+
     if (!wishlist) {
       throw new NotFoundException('Wishlist not found');
     }
 
     wishlist.items = wishlist.items.filter(
-      item => item.product.toString() !== productId
+      (item) => String(item.product) !== productId,
     );
 
     await wishlist.save();
@@ -76,8 +81,10 @@ export class UsersService {
   }
 
   async clearWishlist(userId: string) {
-    const wishlist = await this.wishlistModel.findOne({ userId: userId as any });
-    
+    const wishlist = await this.wishlistModel.findOne({
+      userId: userId as any,
+    });
+
     if (!wishlist) {
       throw new NotFoundException('Wishlist not found');
     }

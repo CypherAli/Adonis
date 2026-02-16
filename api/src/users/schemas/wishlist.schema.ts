@@ -10,7 +10,11 @@ export class Wishlist {
 
   @Prop([
     {
-      product: { type: MongooseSchema.Types.ObjectId, ref: 'Product', required: true },
+      product: {
+        type: MongooseSchema.Types.ObjectId,
+        ref: 'Product',
+        required: true,
+      },
       addedAt: { type: Date, default: Date.now },
     },
   ])
