@@ -143,7 +143,7 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
     if (status === 'authenticated' && session?.accessToken) {
       // Add small delay to ensure session is fully hydrated
       const timer = setTimeout(() => {
-        fetchCart(session.accessToken)
+        fetchCart(session.accessToken as string)
       }, 100)
       return () => clearTimeout(timer)
     } else if (status === 'unauthenticated') {
