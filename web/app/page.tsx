@@ -1,6 +1,6 @@
 "use client"
 
-import React, { useState, useMemo, useEffect } from 'react'
+import React, { Suspense, useState, useMemo, useEffect } from 'react'
 import { motion } from 'framer-motion'
 import { useSearchParams } from 'next/navigation'
 import { useSession } from 'next-auth/react'
@@ -17,7 +17,7 @@ import QuickViewModal from '@/components/modal/QuickViewModal'
 import { BRANDS, SIZE_OPTIONS, COLOR_OPTIONS, MATERIAL_OPTIONS } from '@/lib/constants'
 import api from '@/lib/api'
 
-export default function HomePage() {
+function HomePageContent() {
   const searchParams = useSearchParams()
   const [selectedProduct, setSelectedProduct] = useState<any>(null)
 
@@ -439,5 +439,13 @@ export default function HomePage() {
       {/* Compare Bar (Bottom Sticky) */}
       <CompareBar />
     </>
+  )
+}
+
+export default function HomePage() {
+  return (
+    <Suspense fallback={null}>
+      <HomePageContent />
+    </Suspense>
   )
 }
