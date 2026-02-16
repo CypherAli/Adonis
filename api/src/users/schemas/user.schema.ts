@@ -94,7 +94,7 @@ export const UserSchema = SchemaFactory.createForClass(User);
 
 // Hash password before saving
 UserSchema.pre('save', async function () {
-  // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-this-alias
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
   const user = this as any;
   // eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
   if (!user.isModified('password')) return;
@@ -108,8 +108,6 @@ UserSchema.pre('save', async function () {
 UserSchema.methods.comparePassword = async function (
   candidatePassword: string,
 ): Promise<boolean> {
-  // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-this-alias
-  const user = this as any;
   // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-argument
-  return bcrypt.compare(candidatePassword, user.password);
+  return bcrypt.compare(candidatePassword, this.password);
 };

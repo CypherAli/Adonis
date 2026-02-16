@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
 import {
   Controller,
   Get,
@@ -12,7 +13,6 @@ import { CartService } from './cart.service';
 import { AddToCartDto, UpdateCartItemDto } from './dto/cart.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { CurrentUser } from '../auth/decorators/current-user.decorator';
-
 @Controller('cart')
 @UseGuards(JwtAuthGuard)
 export class CartController {
@@ -20,12 +20,15 @@ export class CartController {
 
   @Get()
   async getCart(@CurrentUser() user: any) {
-    return this.cartService.getCart(user._id);
+    return this.cartService.getCart(String(user._id));
   }
 
   @Post()
-  async addToCart(@CurrentUser() user: any, @Body() addToCartDto: AddToCartDto) {
-    return this.cartService.addToCart(user._id, addToCartDto);
+  async addToCart(
+    @CurrentUser() user: any,
+    @Body() addToCartDto: AddToCartDto,
+  ) {
+    return this.cartService.addToCart(String(user._id), addToCartDto);
   }
 
   @Put(':productId/:variantSku')
@@ -35,7 +38,12 @@ export class CartController {
     @Param('variantSku') variantSku: string,
     @Body() updateDto: UpdateCartItemDto,
   ) {
-    return this.cartService.updateCartItem(user._id, productId, variantSku, updateDto);
+    return this.cartService.updateCartItem(
+      String(user._id),
+      productId,
+      variantSku,
+      updateDto,
+    );
   }
 
   @Delete(':productId/:variantSku')
@@ -44,15 +52,18 @@ export class CartController {
     @Param('productId') productId: string,
     @Param('variantSku') variantSku: string,
   ) {
-    return this.cartService.removeFromCart(user._id, productId, variantSku);
+    return this.cartService.removeFromCart(
+      String(user._id),
+      productId,
+      variantSku,
+    );
   }
 
-  // ✅ CLEAR CART ENDPOINT - XỬ LÝ Ở BE
   @Post('clear')
   async clearCart(
     @CurrentUser() user: any,
     @Body('productIds') productIds?: string[],
   ) {
-    return this.cartService.clearCart(user._id, productIds);
+    return this.cartService.clearCart(String(user._id), productIds);
   }
 }

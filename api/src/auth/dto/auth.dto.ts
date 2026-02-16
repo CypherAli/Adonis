@@ -1,4 +1,10 @@
-import { IsString, IsEmail, MinLength, IsOptional, IsEnum } from 'class-validator';
+import {
+  IsString,
+  IsEmail,
+  MinLength,
+  IsOptional,
+  IsEnum,
+} from 'class-validator';
 
 export class RegisterDto {
   @IsString()
@@ -27,7 +33,7 @@ export class RegisterDto {
 
 export class LoginDto {
   @IsString()
-  username: string;  // Can be username or email
+  username: string; // Can be username or email
 
   @IsString()
   password: string;

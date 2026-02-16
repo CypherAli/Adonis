@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import { Model } from 'mongoose';
+import { Model, SortOrder } from 'mongoose';
 import { Product, ProductDocument } from './schemas/product.schema';
 import { GetProductsDto } from './dto/get-products.dto';
 
@@ -30,6 +30,7 @@ export class ProductsService {
     } = query;
 
     // Build filter
+
     const filter: Record<string, any> = { isActive: true };
 
     // Text search
@@ -44,7 +45,10 @@ export class ProductsService {
 
     // Brand filter (supports comma-separated values)
     if (brand) {
-      const brands = brand.split(',').map(b => b.trim()).filter(Boolean);
+      const brands = brand
+        .split(',')
+        .map((b) => b.trim())
+        .filter(Boolean);
       if (brands.length === 1) {
         filter.brand = brands[0];
       } else if (brands.length > 1) {
@@ -54,24 +58,31 @@ export class ProductsService {
 
     // Price range filter
     if (minPrice !== undefined || maxPrice !== undefined) {
-      filter.basePrice = {};
-      if (minPrice !== undefined) filter.basePrice.$gte = minPrice;
-      if (maxPrice !== undefined) filter.basePrice.$lte = maxPrice;
+      const priceFilter: { $gte?: number; $lte?: number } = {};
+      if (minPrice !== undefined) priceFilter.$gte = minPrice;
+      if (maxPrice !== undefined) priceFilter.$lte = maxPrice;
+      filter.basePrice = priceFilter;
     }
 
     // Variant filters (size, color, gender) - support comma-separated values
-    if (size || color || gender) {
-      const variantFilters: any = {};
-      if (size) {
-        const sizes = size.split(',').map(s => s.trim()).filter(Boolean);
-        variantFilters['variants.specifications.size'] = sizes.length === 1 ? sizes[0] : { $in: sizes };
-      }
-      if (color) {
-        const colors = color.split(',').map(c => c.trim()).filter(Boolean);
-        variantFilters['variants.specifications.color'] = colors.length === 1 ? colors[0] : { $in: colors };
-      }
-      if (gender) variantFilters['variants.specifications.gender'] = gender;
-      Object.assign(filter, variantFilters);
+    if (size) {
+      const sizes = size
+        .split(',')
+        .map((s) => s.trim())
+        .filter(Boolean);
+      filter['variants.specifications.size'] =
+        sizes.length === 1 ? sizes[0] : { $in: sizes };
+    }
+    if (color) {
+      const colors = color
+        .split(',')
+        .map((c) => c.trim())
+        .filter(Boolean);
+      filter['variants.specifications.color'] =
+        colors.length === 1 ? colors[0] : { $in: colors };
+    }
+    if (gender) {
+      filter['variants.specifications.gender'] = gender;
     }
 
     // In stock filter
@@ -93,7 +104,7 @@ export class ProductsService {
     const skip = (page - 1) * limit;
 
     // Sort
-    const sort: any = {};
+    const sort: Record<string, SortOrder> = {};
     sort[sortBy] = sortOrder === 'asc' ? 1 : -1;
 
     // Execute query with pagination
@@ -147,8 +158,8 @@ export class ProductsService {
   async getSizes() {
     const products = await this.productModel.find({ isActive: true }).exec();
     const sizes = new Set<string>();
-    products.forEach(product => {
-      product.variants.forEach(variant => {
+    products.forEach((product) => {
+      product.variants.forEach((variant) => {
         if (variant.specifications?.size) {
           sizes.add(variant.specifications.size);
         }
@@ -160,8 +171,8 @@ export class ProductsService {
   async getColors() {
     const products = await this.productModel.find({ isActive: true }).exec();
     const colors = new Set<string>();
-    products.forEach(product => {
-      product.variants.forEach(variant => {
+    products.forEach((product) => {
+      product.variants.forEach((variant) => {
         if (variant.specifications?.color) {
           colors.add(variant.specifications.color);
         }

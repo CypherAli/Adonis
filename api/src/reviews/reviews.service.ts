@@ -1,4 +1,9 @@
-import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
+/* eslint-disable @typescript-eslint/no-unsafe-argument */
+import {
+  Injectable,
+  NotFoundException,
+  BadRequestException,
+} from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { Review, ReviewDocument } from './schemas/review.schema';
@@ -42,16 +47,18 @@ export class ReviewsService {
       .exec();
 
     const reviewedProductIds = new Set(
-      reviews.map(r => r.product.toString())
+      reviews.map((r) => r.product.toString()),
     );
 
     // Mark which items have been reviewed
-    const ordersWithReviewStatus = orders.map(order => ({
+    const ordersWithReviewStatus = orders.map((order) => ({
       ...order,
-      items: order.items.map(item => ({
+      items: order.items.map((item) => ({
         ...item,
         hasReview: reviewedProductIds.has(
-          typeof item.product === 'string' ? item.product : item.product._id.toString()
+          typeof item.product === 'string'
+            ? item.product
+            : item.product._id.toString(),
         ),
       })),
     }));
@@ -135,14 +142,12 @@ export class ReviewsService {
       throw new NotFoundException('Review not found');
     }
 
-    const hasMarked = review.helpfulBy.some(
-      id => id.toString() === userId
-    );
+    const hasMarked = review.helpfulBy.some((id) => id.toString() === userId);
 
     if (hasMarked) {
       // Remove
       review.helpfulBy = review.helpfulBy.filter(
-        id => id.toString() !== userId
+        (id) => id.toString() !== userId,
       );
       review.helpfulCount = Math.max(0, review.helpfulCount - 1);
     } else {

@@ -1,4 +1,9 @@
-import { Injectable, UnauthorizedException, ConflictException } from '@nestjs/common';
+/* eslint-disable @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-return */
+import {
+  Injectable,
+  UnauthorizedException,
+  ConflictException,
+} from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
@@ -42,9 +47,9 @@ export class AuthService {
 
     // Find user by username or email
     const user = await this.userModel.findOne({
-      $or: [{ username }, { email: username }]
+      $or: [{ username }, { email: username }],
     });
-    
+
     if (!user) {
       throw new UnauthorizedException('Invalid credentials');
     }
@@ -83,8 +88,8 @@ export class AuthService {
   }
 
   private sanitizeUser(user: UserDocument) {
-    const userObj = user.toObject();
-    delete userObj.password;
-    return userObj;
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const { password, ...userWithoutPassword } = user.toObject();
+    return userWithoutPassword;
   }
 }

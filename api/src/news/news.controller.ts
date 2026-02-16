@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
 import {
   Controller,
   Get,
@@ -43,7 +44,7 @@ export class NewsController {
   ) {
     return this.newsService.create({
       ...body,
-      author: user._id || user.id,
+      author: String(user._id),
     });
   }
 
