@@ -3,6 +3,8 @@ import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { Order, OrderDocument } from './schemas/order.schema';
 import { Cart, CartDocument } from '../cart/schemas/cart.schema';
+import { Product, ProductDocument } from '../products/schemas/product.schema';
+import { CartService } from '../cart/cart.service';
 import { CreateOrderDto } from './dto/create-order.dto';
 
 @Injectable()
@@ -10,10 +12,30 @@ export class OrdersService {
   constructor(
     @InjectModel(Order.name) private orderModel: Model<OrderDocument>,
     @InjectModel(Cart.name) private cartModel: Model<CartDocument>,
+    @InjectModel(Product.name) private productModel: Model<ProductDocument>,
+    private readonly cartService: CartService,
   ) {}
 
   async createOrder(userId: string, createOrderDto: CreateOrderDto) {
     const { items, shippingAddress, paymentMethod = 'cod', notes } = createOrderDto;
+
+    if (!items || items.length === 0) {
+      throw new BadRequestException('Order must have at least one item');
+    }
+
+    // Validate stock availability before creating order
+    for (const item of items) {
+      const product = await this.productModel.findById(item.productId);
+      if (!product) {
+        throw new BadRequestException(`Product ${item.productId} not found`);
+      }
+      const variant = product.variants?.find(v => v.sku === item.variantSku);
+      if (variant && variant.stock < item.quantity) {
+        throw new BadRequestException(
+          `Insufficient stock for ${product.name} (${item.variantSku}). Available: ${variant.stock}`,
+        );
+      }
+    }
 
     // Calculate totals
     const subtotal = items.reduce((sum, item) => sum + item.price * item.quantity, 0);
@@ -57,8 +79,6 @@ export class OrdersService {
       } as any],
     });
 
-<<<<<<< Updated upstream
-=======
     // Auto-clear ordered items from cart on backend
     const productIds = items.map(item => item.productId);
     try {
@@ -81,7 +101,6 @@ export class OrdersService {
       }
     }
 
->>>>>>> Stashed changes
     return order;
   }
 

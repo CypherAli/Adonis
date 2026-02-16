@@ -124,17 +124,11 @@ export default function CheckoutPage() {
         notes,
       }
 
-      // Create order
+      // Create order - backend auto-clears cart & decreases stock
       await api.post('/api/orders', orderData)
 
-<<<<<<< Updated upstream
-      // ✅ Clear cart ở BE (theo yêu cầu)
-      const productIds = cartItems.map((item: any) => item.product?._id || item.product)
-      await api.post('/api/cart/clear', { productIds })
-=======
-      // Backend already cleared cart - just refresh frontend state from server
+      // Refresh frontend cart state (backend already cleared it)
       await refreshCart()
->>>>>>> Stashed changes
 
       setSuccess(true)
 
