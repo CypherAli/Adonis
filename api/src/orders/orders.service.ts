@@ -39,7 +39,7 @@ export class OrdersService {
 
     // Calculate totals
     const subtotal = items.reduce((sum, item) => sum + item.price * item.quantity, 0);
-    const shippingFee = subtotal > 500000 ? 0 : 30000; // Free shipping above 500k
+    const shippingFee = subtotal > 500000 ? 0 : 30000;
     const totalAmount = subtotal + shippingFee;
 
     // Create order
@@ -70,7 +70,7 @@ export class OrdersService {
         },
       },
       paymentMethod,
-      paymentStatus: paymentMethod === 'cod' ? 'pending' : 'pending',
+      paymentStatus: 'pending',
       notes,
       statusHistory: [{
         status: 'pending',
@@ -123,4 +123,3 @@ export class OrdersService {
       .exec();
   }
 }
-

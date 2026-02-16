@@ -214,8 +214,8 @@ const Header = () => {
           <Link href="/best-sellers" className="nav-menu-item">
             ⭐ Best Sellers
           </Link>
-          <Link href="/blog" className="nav-menu-item">
-            📰 News & Reviews
+          <Link href="/tin-tuc" className="nav-menu-item">
+            📰 Tin Tức
           </Link>
           <Link href="/about" className="nav-menu-item">
             ℹ️ About Us

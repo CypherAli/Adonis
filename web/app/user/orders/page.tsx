@@ -84,38 +84,12 @@ export default function OrdersPage() {
     try {
       setLoading(true)
       setError(null)
-      const res = await api.get('/api/orders')
-      const ordersData = res.data.orders || res.data
-      
-      // Get user's reviews to check which products have been reviewed
-      let userReviews: any[] = []
-      try {
-        const reviewsRes = await api.get('/api/reviews/my-reviews')
-        userReviews = reviewsRes.data.reviews || []
-      } catch (err) {
-        // If can't get reviews, just continue without marking
-        console.log('Could not fetch reviews:', err)
-      }
-      
-      // Mark items that have been reviewed
-      const ordersWithReviewStatus = Array.isArray(ordersData)
-        ? ordersData.map((order: Order) => ({
-            ...order,
-            items: order.items.map((item) => {
-              const productId = typeof item.product === 'string' 
-                ? item.product 
-                : (item.product as any)?._id
-              const hasReview = userReviews.some(
-                (review) => review.product === productId || review.product._id === productId
-              )
-              return { ...item, hasReview }
-            }),
-          }))
-        : []
-      
-      setOrders(ordersWithReviewStatus)
+
+      // Use optimized endpoint that returns orders with review status already joined
+      const res = await api.get('/api/reviews/orders-with-status')
+      const ordersData = Array.isArray(res.data) ? res.data : (res.data.orders || [])
+      setOrders(ordersData)
     } catch (err: any) {
-      // Handle 401 specifically - don't show error, just set empty
       if (err.response?.status === 401 || err.response?.status === 403) {
         setOrders([])
         setError(null)

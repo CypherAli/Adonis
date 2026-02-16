@@ -5,6 +5,7 @@ import { OrdersController } from './orders.controller';
 import { Order, OrderSchema } from './schemas/order.schema';
 import { Cart, CartSchema } from '../cart/schemas/cart.schema';
 import { Product, ProductSchema } from '../products/schemas/product.schema';
+import { CartModule } from '../cart/cart.module';
 
 @Module({
   imports: [
@@ -13,6 +14,7 @@ import { Product, ProductSchema } from '../products/schemas/product.schema';
       { name: Cart.name, schema: CartSchema },
       { name: Product.name, schema: ProductSchema },
     ]),
+    CartModule,
   ],
   providers: [OrdersService],
   controllers: [OrdersController],

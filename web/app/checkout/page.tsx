@@ -132,7 +132,6 @@ export default function CheckoutPage() {
 
       setSuccess(true)
 
-      // Redirect to orders page
       setTimeout(() => {
         router.push('/user/orders')
       }, 2000)
