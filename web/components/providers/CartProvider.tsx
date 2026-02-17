@@ -39,13 +39,11 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
   const mergeDuplicateItems = useCallback((items: CartItem[]) => {
     if (!items || items.length === 0) return []
     
-    console.log('🔀 Merging duplicate items...')
     const merged = new Map<string, CartItem>()
-    
-    items.forEach((item, idx) => {
-      // CRITICAL: Proper productId extraction
+
+    items.forEach((item) => {
       let productId: string
-      
+
       if (item.product?._id) {
         productId = String(item.product._id)
       } else if (item.product?.id) {
@@ -53,41 +51,31 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
       } else if (typeof item.product === 'string') {
         productId = item.product
       } else if (item.product) {
-        // Fallback: try toString but validate
         const str = String(item.product)
-        if (str === '[object Object]') {
-          console.error(`❌ [${idx}] Invalid product - cannot extract ID:`, item.product)
-          return // Skip this invalid item
-        }
+        if (str === '[object Object]') return
         productId = str
       } else {
-        console.error(`❌ [${idx}] No product found in item`)
-        return // Skip
+        return
       }
-      
+
       const variantSku = item.variantSku || 'default'
       const uniqueKey = `${productId}###${variantSku}`
-      
+
       const existing = merged.get(uniqueKey)
       if (existing) {
-        // Merge duplicate - add quantities
-        console.warn('⚠️ Found duplicate cart item:', uniqueKey, 'Merging quantities')
         existing.quantity += item.quantity
       } else {
         merged.set(uniqueKey, { ...item })
       }
     })
-    
+
     const result = Array.from(merged.values())
-    console.log('📦 Cart items after merge:', result.length, 'items')
-    
-    // Safety check
+
+    // Safety check - don't lose items
     if (result.length === 0 && items.length > 0) {
-      console.error('❌ WARNING: Merge resulted in 0 items from', items.length, 'items!')
-      console.error('Raw items:', items)
-      return items // Return original items to prevent data loss
+      return items
     }
-    
+
     return result
   }, [])
 
@@ -105,11 +93,9 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
           Authorization: `Bearer ${token}`
         }
       })
-      // Backend trả về { success: true, data: { items: [...] } }
       const cartData = response.data?.data || response.data
       const rawItems = cartData?.items || []
-      console.log('📥 Fetched cart from server:', rawItems.length, 'raw items')
-      
+
       // Merge duplicates before setting state
       const mergedItems = mergeDuplicateItems(rawItems)
       setCartItems(mergedItems)
@@ -194,7 +180,8 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
           })
           // Backend trả về { success: true, data: { items: [...] } }
           const cartData = response.data?.data || response.data
-          setCartItems(cartData?.items || [])
+          const rawItems = cartData?.items || []
+          setCartItems(mergeDuplicateItems(rawItems))
           // Clear guest cart after successful server update
           localStorage.removeItem('guestCart')
           return // Success - exit early
@@ -255,170 +242,122 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
     } finally {
       setLoading(false)
     }
-  }, [status, session?.accessToken])
+  }, [status, session?.accessToken, mergeDuplicateItems])
 
   const removeFromCart = useCallback(async (itemId: string) => {
     try {
-      console.log('🗑️ ==== REMOVE FROM CART ====')
-      console.log('  itemId:', itemId)
       setLoading(true)
-      
+
+      const filterOutItem = (items: CartItem[]) => items.filter(item => {
+        const pid = String(item.product?._id || item.product?.id || item.product)
+        const vsku = item.variantSku || 'default'
+        return `${pid}###${vsku}` !== itemId
+      })
+
       if (session?.user && session.accessToken) {
-        // itemId format: "productId###variantSku"
         const [productId, variantSku] = itemId.split('###')
-        
-        console.log('  Parsed:')
-        console.log('    productId:', productId)
-        console.log('    variantSku:', variantSku)
-        
+
         if (!productId) {
-          console.error('❌ Invalid itemId format:', itemId)
           throw new Error('Invalid item ID format')
         }
 
-        // Use 'default' if variantSku is empty/undefined
         const safeVariantSku = variantSku || 'default'
         const encodedVariantSku = encodeURIComponent(safeVariantSku)
         const deleteUrl = `/api/cart/${productId}/${encodedVariantSku}`
-        
-        console.log('  Encoded variantSku:', encodedVariantSku)
-        console.log('  DELETE URL:', deleteUrl)
-        console.log('  Full URL:', `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3333'}${deleteUrl}`)
-        
-        // Optimistic update - update UI immediately
-        const previousItems = cartItems
+
+        // Save previous items for rollback using functional update
+        let previousItems: CartItem[] = []
         setCartItems(prev => {
-          const filtered = prev.filter(item => {
-            const pid = String(item.product?._id || item.product?.id || item.product)
-            const vsku = item.variantSku || 'default'
-            const compositeId = `${pid}###${vsku}`
-            return compositeId !== itemId
-          })
-          console.log('✅ Optimistic update: removed from UI. Remaining:', filtered.length)
-          return filtered
+          previousItems = prev
+          return filterOutItem(prev)
         })
-        
+
         try {
-          console.log('🌐 Making DELETE request...')
-          
           const response = await api.delete(deleteUrl, {
             headers: { Authorization: `Bearer ${session.accessToken}` }
           })
-          
-          console.log('✅ Server delete successful:', response.status)
-          
-          // Fetch fresh data from server to ensure sync
-          console.log('🔄 Fetching updated cart...')
-          await fetchCart(session.accessToken)
+          // Use the response directly instead of re-fetching to avoid race conditions
+          const cartData = response.data?.data || response.data
+          if (cartData?.items) {
+            setCartItems(mergeDuplicateItems(cartData.items))
+          }
         } catch (error: any) {
-          console.error('❌ === DELETE ERROR ===')
-          console.error('  Status:', error.response?.status)
-          console.error('  Data:', error.response?.data)
-          console.error('  Message:', error.message)
-          console.error('  Full error:', error)
-          // Revert on error
           setCartItems(previousItems)
           throw error
         }
-        
+
         localStorage.removeItem('guestCart')
       } else {
-        // For guest cart, filter by composite ID
-        const updatedCart = cartItems.filter(item => {
-          const pid = String(item.product?._id || item.product?.id || item.product)
-          const vsku = item.variantSku || 'default'
-          const compositeId = `${pid}###${vsku}`
-          return compositeId !== itemId
+        setCartItems(prev => {
+          const updatedCart = filterOutItem(prev)
+          localStorage.setItem('guestCart', JSON.stringify(updatedCart))
+          return updatedCart
         })
-        setCartItems(updatedCart)
-        localStorage.setItem('guestCart', JSON.stringify(updatedCart))
       }
     } catch (error: any) {
-      console.error('Error removing from cart:', error)
+      if (process.env.NODE_ENV === 'development') {
+        console.error('Error removing from cart:', error)
+      }
       alert('Không thể xóa sản phẩm. Vui lòng thử lại.')
     } finally {
       setLoading(false)
     }
-  }, [session, cartItems, fetchCart])
+  }, [session, mergeDuplicateItems])
 
   const updateQuantity = useCallback(async (itemId: string, quantity: number) => {
     try {
-      console.log('📝 ==== UPDATE QUANTITY ====')
-      console.log('  itemId:', itemId)
-      console.log('  quantity:', quantity)
       setLoading(true)
-      
+
+      const updateItem = (items: CartItem[]) => items.map(item => {
+        const pid = String(item.product?._id || item.product?.id || item.product)
+        const vsku = item.variantSku || 'default'
+        return `${pid}###${vsku}` === itemId ? { ...item, quantity } : item
+      })
+
       if (session?.user && session.accessToken) {
-        // itemId format: "productId###variantSku"
         const [productId, variantSku] = itemId.split('###')
-        
-        console.log('  Parsed:')
-        console.log('    productId:', productId)
-        console.log('    variantSku:', variantSku)
-        
+
         if (!productId) {
-          console.error('❌ Invalid itemId format:', itemId)
           throw new Error('Invalid item ID format')
         }
 
-        // Use 'default' if variantSku is empty/undefined
         const safeVariantSku = variantSku || 'default'
         const encodedVariantSku = encodeURIComponent(safeVariantSku)
         const updateUrl = `/api/cart/${productId}/${encodedVariantSku}`
-        
-        console.log('  Encoded variantSku:', encodedVariantSku)
-        console.log('  PUT URL:', updateUrl)
-        
-        // Optimistic update
-        const previousItems = cartItems
+
+        // Optimistic update, save previous for rollback
+        let previousItems: CartItem[] = []
         setCartItems(prev => {
-          return prev.map(item => {
-            const pid = String(item.product?._id || item.product?.id || item.product)
-            const vsku = item.variantSku || 'default'
-            const compositeId = `${pid}###${vsku}`
-            return compositeId === itemId ? { ...item, quantity } : item
-          })
+          previousItems = prev
+          return updateItem(prev)
         })
-        
+
         try {
-          console.log('🌐 Making PUT request...')
-          
-          const response = await api.put(updateUrl, { quantity }, {
+          await api.put(updateUrl, { quantity }, {
             headers: { Authorization: `Bearer ${session.accessToken}` }
           })
-          
-          console.log('✅ Server update successful:', response.status)
-          // Don't fetchCart here - optimistic update is already applied
-          // Fetching would overwrite the optimistic state and cause UI flickering
         } catch (error: any) {
-          console.error('❌ === UPDATE ERROR ===')
-          console.error('  Status:', error.response?.status)
-          console.error('  Data:', error.response?.data)
-          console.error('  Message:', error.message)
-          // Revert on error
           setCartItems(previousItems)
           throw error
         }
-        
+
         localStorage.removeItem('guestCart')
       } else {
-        // For guest cart, match by composite ID
-        const updatedCart = cartItems.map(item => {
-          const pid = String(item.product?._id || item.product?.id || item.product)
-          const vsku = item.variantSku || 'default'
-          const compositeId = `${pid}###${vsku}`
-          return compositeId === itemId ? { ...item, quantity } : item
+        setCartItems(prev => {
+          const updatedCart = updateItem(prev)
+          localStorage.setItem('guestCart', JSON.stringify(updatedCart))
+          return updatedCart
         })
-        setCartItems(updatedCart)
-        localStorage.setItem('guestCart', JSON.stringify(updatedCart))
       }
     } catch (error: any) {
-      console.error('Error updating cart quantity:', error)
+      if (process.env.NODE_ENV === 'development') {
+        console.error('Error updating cart quantity:', error)
+      }
       alert('Không thể cập nhật số lượng. Vui lòng thử lại.')
     } finally {
       setLoading(false)
     }
-  }, [session, cartItems, fetchCart])
+  }, [session])
 
   const clearCart = useCallback(async () => {
     try {
@@ -444,7 +383,7 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
     } finally {
       setLoading(false)
     }
-  }, [session, fetchCart])
+  }, [session])
 
   // Refresh cart from server (used after backend-side cart clearing, e.g. after order)
   const refreshCart = useCallback(async () => {

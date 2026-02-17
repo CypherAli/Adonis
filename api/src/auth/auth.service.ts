@@ -8,10 +8,11 @@ import {
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { InjectModel } from '@nestjs/mongoose';
-import { Model } from 'mongoose';
+import { Model, Types } from 'mongoose';
 import { User, UserDocument } from '../users/schemas/user.schema';
 import { Order, OrderDocument } from '../orders/schemas/order.schema';
 import { Review, ReviewDocument } from '../reviews/schemas/review.schema';
+import { Wishlist, WishlistDocument } from '../users/schemas/wishlist.schema';
 import { RegisterDto, LoginDto } from './dto/auth.dto';
 
 @Injectable()
@@ -20,6 +21,7 @@ export class AuthService {
     @InjectModel(User.name) private userModel: Model<UserDocument>,
     @InjectModel(Order.name) private orderModel: Model<OrderDocument>,
     @InjectModel(Review.name) private reviewModel: Model<ReviewDocument>,
+    @InjectModel(Wishlist.name) private wishlistModel: Model<WishlistDocument>,
     private jwtService: JwtService,
   ) {}
 
@@ -135,14 +137,15 @@ export class AuthService {
   }
 
   async getUserStats(userId: string) {
-    const [orderCount, reviewCount] = await Promise.all([
+    const [orderCount, reviewCount, wishlistDoc] = await Promise.all([
       this.orderModel.countDocuments({ user: userId }),
       this.reviewModel.countDocuments({ user: userId }),
+      this.wishlistModel.findOne({ userId: new Types.ObjectId(userId) } as any).select('items').lean(),
     ]);
 
     return {
       orders: orderCount,
-      wishlist: 0,
+      wishlist: wishlistDoc?.items?.length || 0,
       reviews: reviewCount,
       vouchers: 0,
     };

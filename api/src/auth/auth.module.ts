@@ -9,6 +9,7 @@ import { AuthController } from './auth.controller';
 import { User, UserSchema } from '../users/schemas/user.schema';
 import { Order, OrderSchema } from '../orders/schemas/order.schema';
 import { Review, ReviewSchema } from '../reviews/schemas/review.schema';
+import { Wishlist, WishlistSchema } from '../users/schemas/wishlist.schema';
 import { JwtStrategy } from './strategies/jwt.strategy';
 
 @Module({
@@ -31,6 +32,7 @@ import { JwtStrategy } from './strategies/jwt.strategy';
       { name: User.name, schema: UserSchema },
       { name: Order.name, schema: OrderSchema },
       { name: Review.name, schema: ReviewSchema },
+      { name: Wishlist.name, schema: WishlistSchema },
     ]),
   ],
   providers: [AuthService, JwtStrategy],

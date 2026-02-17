@@ -1,4 +1,4 @@
-/* eslint-disable @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-argument, @typescript-eslint/restrict-template-expressions */
+/* eslint-disable @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-argument */
 import {
   Injectable,
   NotFoundException,
@@ -17,61 +17,38 @@ export class CartService {
     @InjectModel(Product.name) private productModel: Model<ProductDocument>,
   ) {}
 
+  private readonly PRODUCT_POPULATE_FIELDS =
+    'name images basePrice brand category variants';
+
+  private populateCart(query: any) {
+    return query
+      .populate('items.product', this.PRODUCT_POPULATE_FIELDS)
+      .populate('items.seller', 'name shopName');
+  }
+
   async getCart(userId: string) {
-    let cart = await this.cartModel
-      .findOne({ user: userId })
-      .populate(
-        'items.product',
-        'name images basePrice brand category variants',
-      )
-      .populate('items.seller', 'name shopName')
-      .exec();
+    let cart = await this.populateCart(
+      this.cartModel.findOne({ user: userId }),
+    ).exec();
 
     if (!cart) {
       cart = await this.cartModel.create({ user: userId, items: [] });
     }
 
-    console.log(`📦 getCart for user ${userId}: ${cart.items.length} items`);
-
-    // Debug: check if products are populated
-    if (cart.items.length > 0) {
-      const firstItem = cart.items[0] as any;
-      const isPopulated =
-        firstItem.product &&
-        typeof firstItem.product === 'object' &&
-        firstItem.product.name;
-      console.log(
-        `  🔍 First item product populated: ${isPopulated ? 'YES ✅' : 'NO ❌'}`,
-      );
-      if (!isPopulated && firstItem.product) {
-        console.log(
-          `  🔍 Product value type: ${typeof firstItem.product}, value: ${firstItem.product}`,
-        );
-      }
-    }
-
-    // Check for null products (deleted from DB) and duplicates
-    const seen = new Set<string>();
-    let hasDuplicates = false;
+    // Clean up null products (deleted from DB)
     const hasNullProducts = cart.items.some((item: any) => !item.product);
-
-    // Clean up null products first
     if (hasNullProducts) {
-      console.log('🧹 Removing items with deleted products...');
       cart.items = cart.items.filter((item: any) => item.product != null);
       await cart.save();
-      const refreshed = await this.cartModel
-        .findOne({ user: userId })
-        .populate(
-          'items.product',
-          'name images basePrice brand category variants',
-        )
-        .populate('items.seller', 'name shopName')
-        .exec();
+      const refreshed = await this.populateCart(
+        this.cartModel.findOne({ user: userId }),
+      ).exec();
       if (refreshed) cart = refreshed;
     }
 
-    // Detect duplicates
+    // Detect and clean duplicates
+    const seen = new Set<string>();
+    let hasDuplicates = false;
     cart.items.forEach((item: any) => {
       const productId = item.product?._id
         ? item.product._id.toString()
@@ -83,7 +60,6 @@ export class CartService {
     });
 
     if (hasDuplicates) {
-      console.log('🧹 Auto-cleaning duplicates...');
       return await this.removeDuplicatesFromCart(userId);
     }
 
@@ -129,14 +105,8 @@ export class CartService {
     );
 
     if (existingItemIndex > -1) {
-      // Update quantity
-      console.log(
-        `📦 Updating existing cart item: ${productId}###${variantSku}`,
-      );
       cart.items[existingItemIndex].quantity += quantity;
     } else {
-      // Add new item
-      console.log(`➕ Adding new cart item: ${productId}###${variantSku}`);
       cart.items.push({
         product: new Types.ObjectId(productId),
         variantSku: variantSku || 'default',
@@ -157,42 +127,21 @@ export class CartService {
     variantSku: string,
     updateDto: UpdateCartItemDto,
   ) {
-    console.log(`📝 === UPDATE CART ITEM ===`);
-    console.log(`  userId: ${userId}`);
-    console.log(`  productId: ${productId}`);
-    console.log(`  variantSku: ${variantSku}`);
-    console.log(`  new quantity: ${updateDto.quantity}`);
-
     const cart = await this.cartModel.findOne({ user: userId });
     if (!cart) {
       throw new NotFoundException('Cart not found');
     }
 
-    console.log(`  Current cart has ${cart.items.length} items:`);
-    cart.items.forEach((item: any, idx) => {
-      console.log(
-        `    [${idx}] productId=${item.product.toString()}, variantSku="${item.variantSku}"`,
-      );
-    });
-
     const targetVariantSku = variantSku || 'default';
-    const itemIndex = cart.items.findIndex((item) => {
-      const productMatch = item.product.toString() === productId;
-      const variantMatch = (item.variantSku || 'default') === targetVariantSku;
-      console.log(
-        `    Checking: ${item.product.toString()}###${item.variantSku || 'default'} - productMatch=${productMatch}, variantMatch=${variantMatch}`,
-      );
-      return productMatch && variantMatch;
-    });
+    const itemIndex = cart.items.findIndex(
+      (item) =>
+        item.product.toString() === productId &&
+        (item.variantSku || 'default') === targetVariantSku,
+    );
 
     if (itemIndex === -1) {
-      console.error(`❌ Item not found: ${productId}###${targetVariantSku}`);
       throw new NotFoundException('Item not found in cart');
     }
-
-    console.log(
-      `  ✅ Found item at index ${itemIndex}, updating quantity to ${updateDto.quantity}`,
-    );
 
     // Validate stock
     const product = await this.productModel.findById(productId);
@@ -211,83 +160,36 @@ export class CartService {
   }
 
   async removeFromCart(userId: string, productId: string, variantSku: string) {
-    console.log(`🗑️ === REMOVE FROM CART ===`);
-    console.log(`  userId: ${userId}`);
-    console.log(`  productId: ${productId}`);
-    console.log(`  variantSku: ${variantSku}`);
-
     const cart = await this.cartModel.findOne({ user: userId });
     if (!cart) {
       throw new NotFoundException('Cart not found');
     }
 
-    console.log(`  Current cart has ${cart.items.length} items:`);
-    cart.items.forEach((item: any, idx) => {
-      console.log(
-        `    [${idx}] productId=${item.product.toString()}, variantSku="${item.variantSku}"`,
-      );
-    });
-
-    const initialLength = cart.items.length;
     const targetVariantSku = variantSku || 'default';
 
-    cart.items = cart.items.filter((item) => {
-      const itemProductId = item.product.toString();
-      const itemVariantSku = item.variantSku || 'default';
-
-      const productMatch = itemProductId === productId;
-      const variantMatch = itemVariantSku === targetVariantSku;
-      const shouldRemove = productMatch && variantMatch;
-
-      console.log(`    Checking item: ${itemProductId}###${itemVariantSku}`);
-      console.log(
-        `      Product match: ${productMatch} (${itemProductId} === ${productId})`,
-      );
-      console.log(
-        `      Variant match: ${variantMatch} ("${itemVariantSku}" === "${targetVariantSku}")`,
-      );
-      console.log(`      Should remove: ${shouldRemove}`);
-
-      if (shouldRemove) {
-        console.log(`    ❌ REMOVING: ${itemProductId}###${itemVariantSku}`);
-      }
-
-      return !shouldRemove;
-    });
-
-    const removedCount = initialLength - cart.items.length;
-    console.log(
-      `  ✅ Removed ${removedCount} item(s). Remaining: ${cart.items.length}`,
+    cart.items = cart.items.filter(
+      (item) =>
+        !(
+          item.product.toString() === productId &&
+          (item.variantSku || 'default') === targetVariantSku
+        ),
     );
-
-    if (removedCount === 0) {
-      console.warn(`  ⚠️ No items were removed! Item not found.`);
-    }
 
     await cart.save();
     return this.getCart(userId);
   }
 
-  // ✅ CLEAR CART - XỬ LÝ Ở BE (theo yêu cầu)
   async clearCart(userId: string, productIds?: string[]) {
-    console.log(`🗑️ Clear cart: userId=${userId}, productIds=${productIds}`);
-
     const cart = await this.cartModel.findOne({ user: userId });
     if (!cart) {
       throw new NotFoundException('Cart not found');
     }
 
     if (productIds && productIds.length > 0) {
-      // Remove specific products (sau khi checkout thành công)
       cart.items = cart.items.filter(
         (item) => !productIds.includes(item.product.toString()),
       );
-      console.log(
-        `  ✅ Removed specific items. Remaining: ${cart.items.length}`,
-      );
     } else {
-      // Clear all items
-      console.log(`  ✅ Clearing all ${cart.items.length} items`);
       cart.items = [];
     }
 
@@ -295,87 +197,47 @@ export class CartService {
     return { message: 'Cart cleared successfully', cart };
   }
 
-  // Helper method to remove duplicate items from cart
-  async removeDuplicatesFromCart(userId: string) {
-    console.log('🧹 === REMOVE DUPLICATES ===');
-
+  private async removeDuplicatesFromCart(userId: string) {
     const cart = await this.cartModel.findOne({ user: userId });
-    if (!cart) {
-      console.log('  ❌ Cart not found');
-      return;
-    }
-
-    console.log(`  Checking ${cart.items.length} items for duplicates`);
+    if (!cart) return;
 
     const seen = new Map<string, number>();
     const uniqueItems: any[] = [];
 
-    cart.items.forEach((item: any, idx) => {
-      // CRITICAL: Proper productId extraction
+    cart.items.forEach((item: any) => {
       let productId: string;
-
       if (item.product?._id) {
-        // Populated: product is an object with _id
         productId = item.product._id.toString();
       } else if (item.product?.toString) {
-        // Not populated: product is ObjectId
         productId = item.product.toString();
       } else {
-        console.error(`  ❌ [${idx}] INVALID item.product:`, item.product);
-        return; // Skip this invalid item
+        return;
       }
 
-      const variantSku = item.variantSku || 'default';
-      const key = `${productId}###${variantSku}`;
-
-      console.log(`  [${idx}] Checking: ${key}`);
-
+      const key = `${productId}###${item.variantSku || 'default'}`;
       const existingIndex = seen.get(key);
+
       if (existingIndex !== undefined) {
-        // Found duplicate - merge quantities
         uniqueItems[existingIndex].quantity += item.quantity;
-        console.warn(
-          `  ⚠️  DUPLICATE: ${key} - Merged qty ${item.quantity} into existing`,
-        );
       } else {
-        // New unique item
         seen.set(key, uniqueItems.length);
         uniqueItems.push(item);
-        console.log(`  ✅ UNIQUE: ${key}`);
       }
     });
 
-    console.log(
-      `  Result: ${uniqueItems.length} unique items (was ${cart.items.length})`,
-    );
-
     if (uniqueItems.length < cart.items.length) {
-      const removedCount = cart.items.length - uniqueItems.length;
-      console.log(`🧹 Cleaning ${removedCount} duplicate(s) from cart`);
-
-      // Safety check: don't remove everything
       if (uniqueItems.length === 0 && cart.items.length > 0) {
-        console.error(
-          '❌ ABORT: Would remove all items! Keeping original cart.',
-        );
         return cart;
       }
 
       cart.items = uniqueItems;
       await cart.save();
 
-      // Refetch with populated data
-      return await this.cartModel
-        .findOne({ user: userId })
-        .populate(
-          'items.product',
-          'name images basePrice brand category variants',
-        )
-        .populate('items.seller', 'name shopName')
-        .exec();
+      return await this.populateCart(
+        this.cartModel.findOne({ user: userId }),
+      ).exec();
     }
 
-    console.log('  No duplicates found');
     return cart;
   }
 }
