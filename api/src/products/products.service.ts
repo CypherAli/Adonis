@@ -4,6 +4,21 @@ import { Model, SortOrder } from 'mongoose';
 import { Product, ProductDocument } from './schemas/product.schema';
 import { GetProductsDto } from './dto/get-products.dto';
 
+// Mongoose filter type for product queries
+interface ProductFilter {
+  isActive: boolean;
+  $text?: { $search: string };
+  category?: string;
+  brand?: string | { $in: string[] };
+  basePrice?: { $gte?: number; $lte?: number };
+  'variants.specifications.size'?: string | { $in: string[] };
+  'variants.specifications.color'?: string | { $in: string[] };
+  'variants.specifications.gender'?: string;
+  'variants.stock'?: { $gt: number };
+  isFeatured?: boolean;
+  _id?: { $ne: string };
+}
+
 @Injectable()
 export class ProductsService {
   constructor(
@@ -30,7 +45,7 @@ export class ProductsService {
     } = query;
 
     // Build filter
-    const filter: Record<string, any> = { isActive: true };
+    const filter: ProductFilter = { isActive: true };
 
     // Text search
     if (search) {
@@ -154,29 +169,33 @@ export class ProductsService {
     return this.productModel.distinct('brand').exec();
   }
 
-  async getSizes() {
-    const products = await this.productModel.find({ isActive: true }).exec();
-    const sizes = new Set<string>();
-    products.forEach((product) => {
-      product.variants.forEach((variant) => {
-        if (variant.specifications?.size) {
-          sizes.add(variant.specifications.size);
-        }
-      });
-    });
-    return Array.from(sizes).sort();
+  async getSizes(): Promise<string[]> {
+    const results: Array<{ _id: string }> = await this.productModel.aggregate([
+      { $match: { isActive: true } },
+      { $unwind: '$variants' },
+      {
+        $match: {
+          'variants.specifications.size': { $exists: true, $ne: null },
+        },
+      },
+      { $group: { _id: '$variants.specifications.size' } },
+      { $sort: { _id: 1 } },
+    ]);
+    return results.map((r) => r._id);
   }
 
-  async getColors() {
-    const products = await this.productModel.find({ isActive: true }).exec();
-    const colors = new Set<string>();
-    products.forEach((product) => {
-      product.variants.forEach((variant) => {
-        if (variant.specifications?.color) {
-          colors.add(variant.specifications.color);
-        }
-      });
-    });
-    return Array.from(colors);
+  async getColors(): Promise<string[]> {
+    const results: Array<{ _id: string }> = await this.productModel.aggregate([
+      { $match: { isActive: true } },
+      { $unwind: '$variants' },
+      {
+        $match: {
+          'variants.specifications.color': { $exists: true, $ne: null },
+        },
+      },
+      { $group: { _id: '$variants.specifications.color' } },
+      { $sort: { _id: 1 } },
+    ]);
+    return results.map((r) => r._id);
   }
 }

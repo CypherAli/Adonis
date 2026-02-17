@@ -29,6 +29,7 @@ server-error.log
 
 # OS
 .DS_Store
+nul
 
 # Upload folders
 uploads/

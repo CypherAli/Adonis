@@ -1,11 +1,10 @@
 "use client"
 
 import { useState, useEffect, useCallback, useRef } from 'react'
-import { useRouter } from 'next/navigation'
 import { useSession } from 'next-auth/react'
 import Link from 'next/link'
 import { useCart } from '@/components/providers/CartProvider'
-import { FaTrash, FaShoppingCart, FaTimes } from 'react-icons/fa'
+import { FaShoppingCart, FaTimes } from 'react-icons/fa'
 import './cart.css'
 
 interface CartItem {
@@ -26,7 +25,6 @@ interface CartItem {
 }
 
 export default function CartPage() {
-  const router = useRouter()
   const { data: session } = useSession()
   const { cartItems, removeFromCart, updateQuantity, clearCart, loading: cartLoading } = useCart()
   
@@ -37,102 +35,62 @@ export default function CartPage() {
   // Normalize and merge duplicate cart items
   const normalizeCartItems = useCallback((): CartItem[] => {
     if (!cartItems || cartItems.length === 0) return []
-    
-    console.log('🔄 Normalizing cart items. Raw count:', cartItems.length)
-    
-    // First pass: normalize all items
-    const normalized = cartItems.map((item: any, idx) => {
-      console.log(`  [${idx}] Raw item:`, item)
-      
-      // Extract productId - handle both populated object and ObjectId string
-      let productId: string
-      let product: any
-      
-      if (item.product && typeof item.product === 'object') {
-        // Product is populated
-        product = item.product
-        productId = String(product._id || product.id)
-        console.log(`    ✅ Product populated: ${productId} - ${product.name}`)
-      } else {
-        // Product is ObjectId string
-        productId = String(item.product)
-        product = null
-        console.warn(`    ⚠️ Product NOT populated! Only ID: ${productId}`)
+
+    const resolvePrice = (item: any, product: any, variantSku: string): number => {
+      if (item.price) return item.price
+      if (product?.variants && variantSku !== 'default') {
+        const variant = product.variants.find((v: any) => v.sku === variantSku)
+        if (variant?.price) return variant.price
       }
-      
-      // Use item.variantSku from backend, fallback to 'default'
+      return product?.basePrice || 0
+    }
+
+    // First pass: normalize all items
+    const normalized = cartItems.map((item: any) => {
+      const isPopulated = item.product && typeof item.product === 'object'
+      const product = isPopulated ? item.product : null
+      const productId = isPopulated
+        ? String(product._id || product.id)
+        : String(item.product)
       const variantSku = item.variantSku || 'default'
-      // Use ### as separator to avoid conflicts with ObjectId
-      const uniqueId = `${productId}###${variantSku}`
-      
-      const normalized = {
-        _id: uniqueId,
+
+      return {
+        _id: `${productId}###${variantSku}`,
         id: item.id,
-        product: product,
+        product,
         productId,
         variantSku,
         seller: item.seller,
         sellerName: item.sellerName || item.seller?.shopName || product?.createdBy?.shopName || 'Unknown Shop',
         name: product?.name || item.name || 'Unknown Product',
         brand: product?.brand || item.brand || '',
-        price: item.price || (() => {
-          // Try to get price from matching variant
-          if (product?.variants && variantSku !== 'default') {
-            const variant = product.variants.find((v: any) => v.sku === variantSku)
-            if (variant?.price) return variant.price
-          }
-          return product?.basePrice || 0
-        })(),
+        price: resolvePrice(item, product, variantSku),
         quantity: item.quantity || 1,
         stock: product?.stock || item.stock || 99,
         imageUrl: product?.images?.[0] || item.imageUrl || '/images/placeholder-product.svg',
         discountedPrice: product?.discountedPrice || item.discountedPrice,
       }
-      
-      console.log(`    → Normalized: ${normalized.name} (${normalized._id})`)
-      return normalized
     })
-    
-    // Second pass: merge duplicates (defensive measure)
+
+    // Second pass: merge duplicates (defensive)
     const merged = new Map<string, CartItem>()
-    normalized.forEach((item, idx) => {
-      // Validate uniqueId is not invalid
-      if (item._id.includes('undefined') || item._id.includes('[object Object]')) {
-        console.error(`❌ [${idx}] Invalid uniqueId detected: ${item._id}`)
-        console.error('  Item:', item)
-        return // Skip invalid item
-      }
-      
+    normalized.forEach((item) => {
+      if (item._id.includes('undefined') || item._id.includes('[object Object]')) return
+
       const existing = merged.get(item._id)
       if (existing) {
-        // Merge quantities of duplicate items
-        console.warn(`⚠️ Merging duplicate: ${item._id}`)
         existing.quantity += item.quantity
       } else {
         merged.set(item._id, item)
       }
     })
-    
-    const result = Array.from(merged.values())
-    console.log('✅ Final normalized items:', result.length)
-    
-    // Safety check
-    if (result.length === 0 && cartItems.length > 0) {
-      console.error('❌ CRITICAL: Normalization resulted in 0 items!')
-      console.error('Raw cartItems:', cartItems)
-    }
-    
-    return result
+
+    return Array.from(merged.values())
   }, [cartItems])
 
   // Update optimistic items when cart changes
   useEffect(() => {
-    const normalized = normalizeCartItems()
-    console.log('🔄 Cart updated. Items:', normalized.length)
-    normalized.forEach((item, idx) => {
-      console.log(`  [${idx}] ID: ${item._id}, Product: ${item.name}, Qty: ${item.quantity}`)
-    })
-    setOptimisticItems(normalized)
+    setOptimisticItems(normalizeCartItems())
   }, [normalizeCartItems])
 
   const items = optimisticItems
@@ -172,10 +130,8 @@ export default function CartPage() {
     quantityTimers.current[itemId] = setTimeout(async () => {
       try {
         await updateQuantity(itemId, newQuantity)
-      } catch (error) {
-        // Revert optimistic update on error
+      } catch {
         setOptimisticItems(normalizeCartItems())
-        console.error('Failed to update quantity:', error)
       }
       delete quantityTimers.current[itemId]
     }, 600) // 600ms debounce
@@ -183,29 +139,13 @@ export default function CartPage() {
 
   // Handle remove item with optimistic update
   const handleRemoveItem = useCallback(async (itemId: string) => {
-    console.log('🗑️ User clicked remove for item:', itemId)
-    
-    if (!confirm('Bạn có chắc muốn xóa sản phẩm này khỏi giỏ hàng?')) {
-      console.log('❌ User cancelled remove')
-      return
-    }
-    
-    console.log('✅ User confirmed remove, proceeding...')
-    
-    // Optimistic update - instant UI feedback
-    setOptimisticItems(prev => {
-      const filtered = prev.filter(item => item._id !== itemId)
-      console.log('📉 Optimistically removed. New count:', filtered.length)
-      return filtered
-    })
-    
+    if (!confirm('Bạn có chắc muốn xóa sản phẩm này khỏi giỏ hàng?')) return
+
+    setOptimisticItems(prev => prev.filter(item => item._id !== itemId))
+
     try {
-      console.log('📡 Calling removeFromCart API...')
       await removeFromCart(itemId)
-      console.log('✅ Remove successful!')
-    } catch (error) {
-      console.error('❌ Remove failed:', error)
-      // Revert optimistic update on error
+    } catch {
       setOptimisticItems(normalizeCartItems())
       alert('Không thể xóa sản phẩm. Vui lòng thử lại.')
     }
@@ -223,10 +163,8 @@ export default function CartPage() {
     
     try {
       await clearCart()
-    } catch (error) {
-      // Revert optimistic update on error
+    } catch {
       setOptimisticItems(previousItems)
-      console.error('Failed to clear cart:', error)
       alert('Không thể xóa giỏ hàng. Vui lòng thử lại.')
     }
   }, [clearCart, optimisticItems])
@@ -275,24 +213,6 @@ export default function CartPage() {
             <FaShoppingCart className="cart-header-icon" />
             <h1>Giỏ Hàng</h1>
             <span className="cart-count">{items.length} sản phẩm</span>
-            {process.env.NODE_ENV === 'development' && (
-              <button 
-                onClick={() => {
-                  console.log('🐛 === DEBUG CART INFO ===')
-                  console.log('Raw cartItems from provider:', cartItems)
-                  console.log('cartItems length:', cartItems?.length)
-                  console.log('Normalized items:', items)
-                  console.log('Normalized items length:', items.length)
-                  items.forEach((item, idx) => {
-                    console.log(`[${idx}] ${item._id} | ${item.name} | Qty: ${item.quantity}`)
-                  })
-                  console.log('======================')
-                }}
-                style={{ marginLeft: '10px', padding: '5px 10px', fontSize: '12px', background: '#ff6b6b', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer' }}
-              >
-                🐛 Debug
-              </button>
-            )}
           </div>
           {items.length > 0 && (
             <button 

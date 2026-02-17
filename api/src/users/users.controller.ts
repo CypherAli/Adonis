@@ -31,6 +31,12 @@ export class UsersController {
     return this.usersService.addToWishlist(String(user._id), productId);
   }
 
+  @Delete('wishlist/clear/all')
+  @UseGuards(JwtAuthGuard)
+  async clearWishlist(@CurrentUser() user: any) {
+    return this.usersService.clearWishlist(String(user._id));
+  }
+
   @Delete('wishlist/:productId')
   @UseGuards(JwtAuthGuard)
   async removeFromWishlist(
@@ -38,11 +44,5 @@ export class UsersController {
     @Param('productId') productId: string,
   ) {
     return this.usersService.removeFromWishlist(String(user._id), productId);
-  }
-
-  @Delete('wishlist/clear/all')
-  @UseGuards(JwtAuthGuard)
-  async clearWishlist(@CurrentUser() user: any) {
-    return this.usersService.clearWishlist(String(user._id));
   }
 }
