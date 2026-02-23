@@ -14,7 +14,13 @@ export interface BackendProductVariant {
   price: number
   originalPrice: number
   stock: number
-  specifications?: string
+  specifications?: {
+    size?: string
+    color?: string
+    material?: string
+    shoeType?: string
+    gender?: string
+  }
   isAvailable: boolean
 }
 

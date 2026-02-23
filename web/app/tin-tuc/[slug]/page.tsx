@@ -4,26 +4,12 @@ import { useState, useEffect } from 'react'
 import { useParams } from 'next/navigation'
 import Link from 'next/link'
 import '../tin-tuc.css'
-
-interface NewsDetail {
-  _id: string
-  slug: string
-  title: string
-  excerpt: string
-  content: string
-  coverImage?: string
-  author: { name: string; avatar?: string } | string
-  tags?: string[]
-  status: string
-  publishedAt?: Date
-  viewCount: number
-  createdAt: Date
-}
+import { getNewsArticle, type NewsItem } from '@/lib/api/news'
 
 export default function NewsDetailPage() {
   const params = useParams()
   const slug = params.slug as string
-  const [article, setArticle] = useState<NewsDetail | null>(null)
+  const [article, setArticle] = useState<NewsItem | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
@@ -34,18 +20,11 @@ export default function NewsDetailPage() {
   const fetchArticle = async () => {
     try {
       setLoading(true)
-      const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3333'
-      const res = await fetch(`${API_URL}/api/news/${slug}`)
-
-      if (res.ok) {
-        const data = await res.json()
-        setArticle(data)
-      } else {
-        setError('Không tìm thấy bài viết')
-      }
+      const data = await getNewsArticle(slug)
+      setArticle(data)
     } catch (err) {
       console.error('Error fetching article:', err)
-      setError('Không thể tải bài viết')
+      setError('Không tìm thấy bài viết')
     } finally {
       setLoading(false)
     }

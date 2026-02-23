@@ -1,7 +1,6 @@
 import {
   IsArray,
   IsString,
-  IsNumber,
   IsOptional,
   IsEnum,
   ValidateNested,
@@ -14,12 +13,6 @@ class OrderItemDto {
 
   @IsString()
   variantSku: string;
-
-  @IsNumber()
-  quantity: number;
-
-  @IsNumber()
-  price: number;
 }
 
 class ShippingAddressDto {

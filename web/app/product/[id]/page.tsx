@@ -4,62 +4,7 @@ import AddToCartButton from '@/components/product/AddToCartButton'
 import ProductGallery from '@/components/product/ProductGallery'
 import ProductReviews from '@/components/product/ProductReviews'
 import RelatedProducts from '@/components/product/RelatedProducts'
-
-/**
- * Product Detail Page - Server Component
- * SEO-optimized với dynamic metadata
- */
-
-interface ProductVariant {
-  variantName: string
-  sku: string
-  price: number
-  originalPrice?: number
-  stock: number
-  specifications: {
-    size?: string
-    color?: string
-    material?: string
-    shoeType?: string
-    gender?: string
-  }
-  isAvailable: boolean
-}
-
-interface Product {
-  _id: string
-  name: string
-  brand: string
-  basePrice: number
-  description: string
-  images: string[]
-  category: string
-  variants: ProductVariant[]
-  rating?: {
-    average?: number
-    count?: number
-  }
-}
-
-// Fetch single product
-async function getProduct(id: string): Promise<Product | null> {
-  try {
-    const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3333'
-    const res = await fetch(`${API_URL}/api/products/${id}`, {
-      next: { revalidate: 300 }, // Revalidate every 5 minutes
-    })
-    
-    if (!res.ok) {
-      return null
-    }
-    
-    const data = await res.json()
-    return data.product || data
-  } catch (error) {
-    console.error('Error fetching product:', error)
-    return null
-  }
-}
+import { fetchProductById } from '@/lib/api/products.server'
 
 // Dynamic Metadata cho SEO
 export async function generateMetadata({
@@ -68,7 +13,7 @@ export async function generateMetadata({
   params: Promise<{ id: string }>
 }): Promise<Metadata> {
   const { id } = await params
-  const product = await getProduct(id)
+  const product = await fetchProductById(id)
   
   if (!product) {
     return {
@@ -109,7 +54,7 @@ export default async function ProductDetailPage({
   params: Promise<{ id: string }>
 }) {
   const { id } = await params
-  const product = await getProduct(id)
+  const product = await fetchProductById(id)
   
   if (!product) {
     notFound()
