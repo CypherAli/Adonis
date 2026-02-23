@@ -142,11 +142,17 @@ apiClient.interceptors.response.use(
     }
 
     // Handle 401/403 errors
-    if (response.status === 401 || response.status === 403) {
-      handleAuthError(response.data?.message)
+    if (response.status === 401) {
+      handleAuthError()
       return Promise.reject({
         response,
-        message: 'Unauthorized',
+        message: 'Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.',
+      })
+    }
+    if (response.status === 403) {
+      return Promise.reject({
+        response,
+        message: 'Không có quyền truy cập.',
       })
     }
 
@@ -154,8 +160,8 @@ apiClient.interceptors.response.use(
   },
   async (error: AxiosError<{ message?: string }>) => {
     // Handle authentication errors
-    if (error.response?.status === 401 || error.response?.status === 403) {
-      handleAuthError(error.response?.data?.message)
+    if (error.response?.status === 401) {
+      handleAuthError()
     }
 
     // Only log 5xx errors in development
@@ -180,23 +186,15 @@ apiClient.interceptors.response.use(
 // ============================================================================
 
 /**
- * Handle authentication errors
+ * Handle authentication errors - any 401 means token is invalid/expired
  */
-function handleAuthError(errorMessage?: string): void {
-  if (typeof window === 'undefined') return
-
-  const message = errorMessage || ''
-  const isExpired =
-    message.includes('Token không hợp lệ') ||
-    message.includes('hết hạn') ||
-    message.includes('expired')
-
-  if (isExpired) {
-    // Auto logout on expired token
-    import('next-auth/react').then(({ signOut }) => {
-      signOut({ callbackUrl: '/auth/login?expired=true', redirect: true })
-    })
-  }
+let isSigningOut = false
+function handleAuthError(): void {
+  if (typeof window === 'undefined' || isSigningOut) return
+  isSigningOut = true
+  import('next-auth/react').then(({ signOut }) => {
+    signOut({ callbackUrl: '/auth/login?expired=true', redirect: true })
+  })
 }
 
 // ============================================================================

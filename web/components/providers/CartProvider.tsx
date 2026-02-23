@@ -276,6 +276,9 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
           const response = await api.delete(deleteUrl, {
             headers: { Authorization: `Bearer ${session.accessToken}` }
           })
+          if (response.status >= 400) {
+            throw new Error(response.data?.message || `Lỗi ${response.status}`)
+          }
           // Use the response directly instead of re-fetching to avoid race conditions
           const cartData = response.data?.data || response.data
           if (cartData?.items) {
@@ -296,9 +299,9 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
       }
     } catch (error: any) {
       if (process.env.NODE_ENV === 'development') {
-        console.error('Error removing from cart:', error)
+        console.error('Error removing from cart:', error?.message || error?.response?.data?.message || error)
       }
-      alert('Không thể xóa sản phẩm. Vui lòng thử lại.')
+      throw error
     } finally {
       setLoading(false)
     }
@@ -333,9 +336,12 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
         })
 
         try {
-          await api.put(updateUrl, { quantity }, {
+          const response = await api.put(updateUrl, { quantity }, {
             headers: { Authorization: `Bearer ${session.accessToken}` }
           })
+          if (response.status >= 400) {
+            throw new Error(response.data?.message || `Lỗi ${response.status}`)
+          }
         } catch (error: any) {
           setCartItems(previousItems)
           throw error
@@ -351,35 +357,39 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
       }
     } catch (error: any) {
       if (process.env.NODE_ENV === 'development') {
-        console.error('Error updating cart quantity:', error)
+        console.error('Error updating cart quantity:', error?.message || error?.response?.data?.message || error)
       }
-      alert('Không thể cập nhật số lượng. Vui lòng thử lại.')
+      throw error
     } finally {
       setLoading(false)
     }
   }, [session])
 
   const clearCart = useCallback(async () => {
+    let previousItems: CartItem[] = []
     try {
       setLoading(true)
-      
+
       if (session?.user && session.accessToken) {
         // Optimistic clear
-        setCartItems([])
-        await api.post('/api/cart/clear', {}, {
+        setCartItems(prev => { previousItems = prev; return [] })
+        const response = await api.post('/api/cart/clear', {}, {
           headers: { Authorization: `Bearer ${session.accessToken}` }
         })
+        if (response.status >= 400) {
+          throw new Error(response.data?.message || `Lỗi ${response.status}`)
+        }
       } else {
         localStorage.removeItem('guestCart')
         setCartItems([])
       }
-    } catch (error) {
+    } catch (error: any) {
       if (process.env.NODE_ENV === 'development') {
-        console.error('Error clearing cart:', error)
+        console.error('Error clearing cart:', error?.message || error?.response?.data?.message || error)
       }
-      // Force clear on error
-      localStorage.removeItem('guestCart')
-      setCartItems([])
+      // Revert optimistic clear
+      setCartItems(previousItems)
+      throw error
     } finally {
       setLoading(false)
     }
