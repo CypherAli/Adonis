@@ -1,6 +1,6 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
-import { mapProducts } from '@/lib/utils/product_mapper'
+import { fetchBestSellers } from '@/lib/api/products.server'
 import ProductCard from '@/components/product/ProductCard'
 
 export const metadata: Metadata = {
@@ -8,23 +8,8 @@ export const metadata: Metadata = {
   description: 'Các sản phẩm giày thể thao bán chạy nhất tại Shoe Store',
 }
 
-async function getBestSellers() {
-  try {
-    const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3333'
-    const res = await fetch(
-      `${API_URL}/api/products?limit=24&sortBy=soldCount&sortOrder=desc`,
-      { next: { revalidate: 300 } },
-    )
-    if (!res.ok) return []
-    const data = await res.json()
-    return mapProducts(data.products || [])
-  } catch {
-    return []
-  }
-}
-
 export default async function BestSellersPage() {
-  const products = await getBestSellers()
+  const products = await fetchBestSellers(24)
 
   return (
     <main className="min-h-screen bg-gradient-to-br from-gray-50 to-blue-50 py-8">

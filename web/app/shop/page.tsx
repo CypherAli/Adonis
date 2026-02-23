@@ -3,61 +3,13 @@ import { Suspense } from 'react'
 import HeroBanner from '@/components/common/HeroBanner'
 import BestSellers from '@/components/product/BestSellers'
 import ProductGrid from '@/components/product/ProductGrid'
-import { mapProducts } from '@/lib/utils/product_mapper'
+import { fetchProducts } from '@/lib/api/products.server'
 
 export const metadata: Metadata = {
   title: 'Shop - Giày Thể Thao Chính Hãng | Shoe Store',
   description:
     'Mua giày thể thao, sneakers chính hãng từ Nike, Adidas, Puma với giá tốt nhất. Giao hàng toàn quốc, đổi trả miễn phí.',
   keywords: 'giày thể thao, sneakers, giày nam, giày nữ, Nike, Adidas',
-}
-
-async function getProducts(
-  page = 1,
-  filters?: {
-    search?: string
-    brand?: string
-    category?: string
-    minPrice?: string
-    maxPrice?: string
-    sortBy?: string
-    sortOrder?: string
-  },
-) {
-  try {
-    const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3333'
-    const params = new URLSearchParams()
-    params.set('page', String(page))
-    params.set('limit', '20')
-    if (filters?.search) params.set('search', filters.search)
-    if (filters?.brand) params.set('brand', filters.brand)
-    if (filters?.category) params.set('category', filters.category)
-    if (filters?.minPrice) params.set('minPrice', filters.minPrice)
-    if (filters?.maxPrice) params.set('maxPrice', filters.maxPrice)
-    if (filters?.sortBy) params.set('sortBy', filters.sortBy)
-    if (filters?.sortOrder) params.set('sortOrder', filters.sortOrder)
-
-    const res = await fetch(`${API_URL}/api/products?${params.toString()}`, {
-      next: { revalidate: 60 },
-    })
-
-    if (!res.ok) {
-      console.error(`API error: ${res.status} ${res.statusText}`)
-      return { products: [], total: 0, page: 1, totalPages: 1 }
-    }
-
-    const data = await res.json()
-    const mappedProducts = mapProducts(data.products || [])
-    return {
-      products: mappedProducts,
-      total: data.pagination?.total || data.totalProducts || 0,
-      page: data.pagination?.page || 1,
-      totalPages: data.pagination?.totalPages || 1,
-    }
-  } catch (error) {
-    console.error('Error fetching products:', error)
-    return { products: [], total: 0, page: 1, totalPages: 1 }
-  }
 }
 
 export default async function ShopPage({
@@ -76,7 +28,7 @@ export default async function ShopPage({
 }) {
   const resolvedSearchParams = await searchParams
   const page = Number(resolvedSearchParams.page) || 1
-  const { products, total, totalPages } = await getProducts(page, {
+  const { products, total, totalPages } = await fetchProducts(page, 20, {
     search: resolvedSearchParams.search,
     brand: resolvedSearchParams.brand,
     category: resolvedSearchParams.category,

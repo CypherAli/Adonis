@@ -3,21 +3,7 @@
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import './tin-tuc.css'
-
-interface NewsItem {
-  _id: string
-  slug: string
-  title: string
-  excerpt: string
-  content: string
-  coverImage?: string
-  author: { name: string; avatar?: string } | string
-  tags?: string[]
-  status: string
-  publishedAt?: Date
-  viewCount: number
-  createdAt: Date
-}
+import { getNewsList, type NewsItem } from '@/lib/api/news'
 
 export default function TinTucPage() {
   const [news, setNews] = useState<NewsItem[]>([])
@@ -32,14 +18,9 @@ export default function TinTucPage() {
   const fetchNews = async () => {
     try {
       setLoading(true)
-      const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3333'
-      const res = await fetch(`${API_URL}/api/news?page=${page}&limit=12`)
-      
-      if (res.ok) {
-        const data = await res.json()
-        setNews(data.news || [])
-        setTotalPages(data.pagination?.totalPages || 1)
-      }
+      const data = await getNewsList(page, 12)
+      setNews(data.news || [])
+      setTotalPages(data.pagination?.totalPages || 1)
     } catch (error) {
       console.error('Error fetching news:', error)
     } finally {

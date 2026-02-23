@@ -46,23 +46,6 @@ export class CartService {
       if (refreshed) cart = refreshed;
     }
 
-    // Detect and clean duplicates
-    const seen = new Set<string>();
-    let hasDuplicates = false;
-    cart.items.forEach((item: any) => {
-      const productId = item.product?._id
-        ? item.product._id.toString()
-        : item.product?.toString();
-      if (!productId) return;
-      const key = `${productId}###${item.variantSku || 'default'}`;
-      if (seen.has(key)) hasDuplicates = true;
-      seen.add(key);
-    });
-
-    if (hasDuplicates) {
-      return await this.removeDuplicatesFromCart(userId);
-    }
-
     return cart;
   }
 
@@ -180,21 +163,19 @@ export class CartService {
   }
 
   async clearCart(userId: string, productIds?: string[]) {
-    const cart = await this.cartModel.findOne({ user: userId });
-    if (!cart) {
-      throw new NotFoundException('Cart not found');
-    }
-
     if (productIds && productIds.length > 0) {
+      const cart = await this.cartModel.findOne({ user: userId });
+      if (!cart) return { message: 'Cart cleared successfully' };
+
       cart.items = cart.items.filter(
         (item) => !productIds.includes(item.product.toString()),
       );
+      await cart.save();
     } else {
-      cart.items = [];
+      await this.cartModel.deleteOne({ user: userId });
     }
 
-    await cart.save();
-    return { message: 'Cart cleared successfully', cart };
+    return { message: 'Cart cleared successfully' };
   }
 
   private async removeDuplicatesFromCart(userId: string) {

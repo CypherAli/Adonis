@@ -4,34 +4,10 @@ import { useState, useTransition, startTransition } from 'react'
 import { useCart } from '@/components/providers/CartProvider'
 import { useSession } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
-
-interface ProductVariant {
-  variantName: string
-  sku: string
-  price: number
-  originalPrice?: number
-  stock: number
-  specifications: {
-    size?: string
-    color?: string
-    material?: string
-    shoeType?: string
-    gender?: string
-  }
-  isAvailable: boolean
-}
-
-interface Product {
-  _id: string
-  name: string
-  basePrice: number
-  images: string[]
-  variants: ProductVariant[]
-  brand?: string
-}
+import type { BackendProduct, BackendProductVariant } from '@/types/product.types'
 
 interface AddToCartButtonProps {
-  product: Product
+  product: BackendProduct
 }
 
 /**
@@ -42,7 +18,7 @@ export default function AddToCartButton({ product }: AddToCartButtonProps) {
   const { data: session } = useSession()
   const router = useRouter()
   const { addToCart } = useCart()
-  const [selectedVariant, setSelectedVariant] = useState<ProductVariant | null>(
+  const [selectedVariant, setSelectedVariant] = useState<BackendProductVariant | null>(
     product.variants?.[0] || null
   )
   const [quantity, setQuantity] = useState(1)

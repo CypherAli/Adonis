@@ -1,4 +1,4 @@
-/* eslint-disable @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-argument, @typescript-eslint/restrict-template-expressions */
+/* eslint-disable @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-argument, @typescript-eslint/restrict-template-expressions, @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-return */
 import { Injectable, BadRequestException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
@@ -29,23 +29,49 @@ export class OrdersService {
       throw new BadRequestException('Order must have at least one item');
     }
 
-    // Validate stock availability before creating order
-    for (const item of items) {
-      const product = await this.productModel.findById(item.productId);
-      if (!product) {
-        throw new BadRequestException(`Product ${item.productId} not found`);
-      }
-      const variant = product.variants?.find((v) => v.sku === item.variantSku);
-      if (variant && variant.stock < item.quantity) {
+    // Lấy cart từ DB — price và quantity phải lấy từ server, không tin client
+    const cart = await this.cartModel
+      .findOne({ user: userId })
+      .populate('items.product', 'name variants')
+      .exec();
+
+    if (!cart || cart.items.length === 0) {
+      throw new BadRequestException('Cart is empty');
+    }
+
+    const cartItems = cart.items as any[];
+
+    // Match các item được chọn với cart, lấy price/quantity từ cart
+    const orderItems: any[] = items.map((requested) => {
+      const cartItem = cartItems.find(
+        (ci) =>
+          ci.product._id.toString() === requested.productId &&
+          (ci.variantSku || 'default') === (requested.variantSku || 'default'),
+      );
+      if (!cartItem) {
         throw new BadRequestException(
-          `Insufficient stock for ${product.name} (${item.variantSku}). Available: ${variant.stock}`,
+          `Item ${requested.productId} (${requested.variantSku}) not found in cart`,
+        );
+      }
+      return cartItem;
+    });
+
+    // Validate stock
+    for (const cartItem of orderItems) {
+      const product = cartItem.product;
+      const variant = product.variants?.find(
+        (v: any) => v.sku === cartItem.variantSku,
+      );
+      if (variant && variant.stock < cartItem.quantity) {
+        throw new BadRequestException(
+          `Insufficient stock for ${product.name} (${cartItem.variantSku}). Available: ${variant.stock}`,
         );
       }
     }
 
-    // Calculate totals
-    const subtotal = items.reduce(
-      (sum, item) => sum + item.price * item.quantity,
+    // Calculate totals từ giá trong cart (server-side)
+    const subtotal = orderItems.reduce(
+      (sum: number, item) => sum + item.price * item.quantity,
       0,
     );
     const shippingFee = subtotal > 500000 ? 0 : 30000;
@@ -54,8 +80,8 @@ export class OrdersService {
     // Create order
     const order = await this.orderModel.create({
       user: userId,
-      items: items.map((item) => ({
-        product: item.productId,
+      items: orderItems.map((item) => ({
+        product: item.product._id,
         variantSku: item.variantSku,
         quantity: item.quantity,
         price: item.price,
@@ -90,21 +116,25 @@ export class OrdersService {
       ],
     });
 
-    // Auto-clear ordered items from cart on backend
-    const productIds = items.map((item) => item.productId);
+    // Xóa các item đã order khỏi cart
+    const productIds: string[] = orderItems.map((item) =>
+      item.product._id.toString(),
+    );
     try {
       await this.cartService.clearCart(userId, productIds);
     } catch {
-      // Cart clear failure should not fail the order
       console.warn(
         `Failed to clear cart for user ${userId} after order ${order._id}`,
       );
     }
 
-    // Decrease stock for ordered variants
-    for (const item of items) {
+    // Decrease stock
+    for (const item of orderItems) {
       const result = await this.productModel.updateOne(
-        { _id: item.productId, 'variants.sku': item.variantSku },
+        {
+          _id: item.product._id,
+          'variants.sku': item.variantSku,
+        },
         {
           $inc: {
             'variants.$.stock': -item.quantity,
@@ -114,7 +144,7 @@ export class OrdersService {
       );
       if (result.matchedCount === 0) {
         console.warn(
-          `Stock decrement skipped: variant "${item.variantSku}" not found in product ${item.productId}`,
+          `Stock decrement skipped: variant "${item.variantSku}" not found in product ${item.product._id}`,
         );
       }
     }

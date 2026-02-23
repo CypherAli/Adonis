@@ -57,7 +57,7 @@ export class NewsService {
     status?: string;
     author: string;
   }) {
-    const slug = this.generateSlug(data.title);
+    const slug = await this.generateUniqueSlug(data.title);
 
     const news = await this.newsModel.create({
       ...data,
@@ -85,7 +85,7 @@ export class NewsService {
     }
 
     if (data.title && data.title !== news.title) {
-      (data as any).slug = this.generateSlug(data.title);
+      (data as any).slug = await this.generateUniqueSlug(data.title, id);
     }
 
     if (data.status === 'published' && news.status !== 'published') {
@@ -104,19 +104,33 @@ export class NewsService {
     return { message: 'News article deleted successfully' };
   }
 
-  private generateSlug(title: string): string {
-    return (
-      title
-        .toLowerCase()
-        .normalize('NFD')
-        .replace(/[\u0300-\u036f]/g, '')
-        .replace(/đ/g, 'd')
-        .replace(/[^a-z0-9\s-]/g, '')
-        .replace(/\s+/g, '-')
-        .replace(/-+/g, '-')
-        .trim() +
-      '-' +
-      Date.now().toString(36)
-    );
+  private baseSlug(title: string): string {
+    return title
+      .toLowerCase()
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .replace(/đ/g, 'd')
+      .replace(/[^a-z0-9\s-]/g, '')
+      .replace(/\s+/g, '-')
+      .replace(/-+/g, '-')
+      .trim();
+  }
+
+  private async generateUniqueSlug(
+    title: string,
+    excludeId?: string,
+  ): Promise<string> {
+    const base = this.baseSlug(title);
+    let slug = base;
+    let counter = 2;
+
+    while (true) {
+      const existing = await this.newsModel
+        .findOne(excludeId ? { slug, _id: { $ne: excludeId } } : { slug })
+        .select('_id')
+        .lean();
+      if (!existing) return slug;
+      slug = `${base}-${counter++}`;
+    }
   }
 }
