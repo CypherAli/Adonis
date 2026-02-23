@@ -145,27 +145,31 @@ export default function CartPage() {
 
     try {
       await removeFromCart(itemId)
-    } catch {
+    } catch (error: any) {
       setOptimisticItems(normalizeCartItems())
-      alert('Không thể xóa sản phẩm. Vui lòng thử lại.')
+      if (error?.response?.status !== 401 && error?.response?.status !== 403) {
+        alert('Không thể xóa sản phẩm. Vui lòng thử lại.')
+      }
     }
   }, [removeFromCart, normalizeCartItems])
 
   // Handle clear all items with optimistic update
   const handleClearAll = useCallback(async () => {
     if (!confirm('Bạn có chắc muốn xóa tất cả sản phẩm khỏi giỏ hàng?')) return
-    
+
     // Store current items for potential revert
     const previousItems = optimisticItems
-    
+
     // Optimistic update - instant UI feedback
     setOptimisticItems([])
-    
+
     try {
       await clearCart()
-    } catch {
+    } catch (error: any) {
       setOptimisticItems(previousItems)
-      alert('Không thể xóa giỏ hàng. Vui lòng thử lại.')
+      if (error?.response?.status !== 401 && error?.response?.status !== 403) {
+        alert('Không thể xóa giỏ hàng. Vui lòng thử lại.')
+      }
     }
   }, [clearCart, optimisticItems])
   
